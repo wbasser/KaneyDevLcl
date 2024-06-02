@@ -1,0 +1,523 @@
+/******************************************************************************
+ * @file  Clock_def.h
+ *
+ * @brief 
+ *
+ * This file 
+ *
+ * @copyright Copyright (c) 2012 Cyber Integration
+ * This document contains proprietary data and information of Cyber Integration 
+ * LLC. It is the exclusive property of Cyber Integration, LLC and will not be 
+ * disclosed in any form to any party without prior written permission of 
+ * Cyber Integration, LLC. This document may not be reproduced or further used 
+ * without the prior written permission of Cyber Integration, LLC.
+ *
+ * $Date: $
+ *
+ * Version History
+ * ======
+ * $Rev: $
+ * 
+ *
+ * \addtogroup Clock
+ * @{
+ *****************************************************************************/
+ 
+// ensure only one instantiation
+#ifndef _CLOCK_DEF_H
+#define _CLOCK_DEF_H
+
+// system includes ------------------------------------------------------------
+
+// library includes -----------------------------------------------------------
+#include "Types/Types.h"
+
+// local includes -------------------------------------------------------------
+
+// Macros and Defines ---------------------------------------------------------
+/// define the HSI system clock, no PLL
+#define CLKSYSHSINOPLLDEFM( ahbpre, apb1pre, apb2pre ) \
+  .eSysClkSrc     = SYSCLK_SRC_HSI16, \
+  .eAhbPrescale   = ahbpre, \
+  .eApb1Prescale  = apb1pre, \
+  .eApb2Prescale  = apb2pre
+
+/// define the sysclock HSI source, PLL
+#define CLKSYSHSIPLLDEFM( ahbpre, apb1pre, plldiv, pllmult, pllpdiv, pllqdiv, pllrdiv ) \
+  .eSysClkSrc     = SYSCLK_SRC_PLL, \
+  .ePllClkSrc     = PLLCLK_SRC_HSI16, \
+  .eAhbPrescale   = ahbpre, \
+  .eApb1Prescale  = apb1pre, \
+  .ePllDiv        = plldiv, \
+  .nPllMult       = pllmult, \
+  .ePllPDiv       = pllpdiv, \
+  .ePllQDiv       = pllqdiv, \
+  .ePllRDiv       = pllrdiv
+
+/// define the sysclock HSE source, PLL
+#define CLKSYSHSEPLLDEFM( ahbpre, apb1pre, plldiv, pllmult, pllpdiv, pllqdiv, pllrdiv, extfreq ) \
+  .eSysClkSrc     = SYSCLK_SRC_PLL, \
+  .ePllClkSrc     = PLLCLK_SRC_HSE, \
+  .eAhbPrescale   = ahbpre, \
+  .eApb1Prescale  = apb1pre, \
+  .ePllDiv        = plldiv, \
+  .nPllMult       = pllmult, \
+  .ePllPDIv       = pllpdiv, \
+  .ePllQDiv       = pllqdiv, \
+  .ePllRDiv       = pllrdiv, \
+  .uExtFreq `     = extfreq, \
+
+/// define the helper macro to define the AHB #1 clock enable
+#define CLKAHB1ENBDEFM( dma1, dma2, dmamux, cordic, fmac, flash, crc ) \
+  .bDMA1          = dma1, \
+  .bDMA2          = dma2, \
+  .bDMAMux        = dmamux, \
+  .bCordic        = cordic, \
+  .bFMAC          = fmac, \
+  .bFlash         = flash, \
+  .bCRC           = crc, \
+
+/// define the helper macro to define the AHB #2 clock enable
+#define CLKAHB2ENBDEFM( gpioa, gpiob, gpioc, gpiod, gpioe, gpiof, gpiog, adc12, adc345, dac1, dac3, rng ) \
+  .bGPIOA         = gpioa, \
+  .bGPIOB         = gpiob, \
+  .bGPIOC         = gpioc, \
+  .bGPIOD         = gpiod, \
+  .bGPIOE         = gpioe, \
+  .bGPIOF         = gpiof, \
+  .bGPIOG         = gpiog, \
+  .bADC12         = adc12, \
+  .bADC345        = adc345, \
+  .bDAC1          = dac1, \
+  .bDAC3          = dac3, \
+  .bRNG           = rng, \
+  
+/// define the helper macro to define the AHB #3 clock enable
+#define CLKAHB3ENBDEFM( qspi ) \
+  .bQSPI          = qspi, \
+
+/// define the helper macro to define the APB #1 clock enable
+#define CLKAPB1ENBDEFM( tim2, tim3, tim4, tim6, tim7, crs, rtc, wdg, spi2, spi3, usart2, usart3, uart4, uart5, i2c1, i2c2, usb, fdcan, pwr, i2c3, lptim1, lpuart1 ) \
+  .bTim2          = tim2, \
+  .bTim3          = tim3, \
+  .bTim4          = tim4, \
+  .bTim6          = tim6, \
+  .bTim7          = tim7, \
+  .bCRS           = crs, \
+  .bRTC           = rtc, \
+  .bWWDG          = wdg, \
+  .bSpi2          = spi2, \
+  .bSpi3          = spi3, \
+  .bUsart2        = usart2, \
+  .bUsart3        = usart3, \
+  .bUart4         = uart4, \
+  .bUart5         = uart5, \
+  .bI2c1          = i2c1, \
+  .bI2c2          = i2c2, \
+  .bUSB           = usb, \
+  .bFDCan         = fdcan, \
+  .bPwr           = pwr, \
+  .bI2c3          = i2c3, \
+  .bLpTim1        = lptim1, \
+  .bLpUart1       = lpuart1, \
+
+/// define the helper macro to define the APB #2 clock enables
+#define CLKAPB2ENBDEFM( syscfg, tim1, spi1, tim8, usart1, tim15, tim16, tim17, tim20, sai1 ) \
+  .bSysCfg        = syscfg, \
+  .bTim1          = tim1, \
+  .bSpi1          = spi1, \
+  .bTim8          = tim8, \
+  .bUsart1        = usart1, \
+  .bTim15         = tim15, \
+  .bTim16         = tim16, \
+  .bTim17         = tim17, \
+  .bTim20         = tim20, \
+  .bSai1          = sai1, \
+  
+/// define the helper macro to define the peripheral clock source 1
+#define CLKPERSRC1DEFM( usart1, usart2, usart3, uart4, uart5, lpuart1, i2c1, i2c2, i2c3, lptim1, sai1, i2cs23, fdcan, clk48, adc12, adc345 ) \
+  .nUsart1    = usart1, \
+  .nUsart2    = usart2, \
+  .nUsart3    = usart3, \
+  .nUart4     = uart4, \
+  .nUart5     = uart5, \
+  .nLpUart1   = lpuart1, \
+  .nI2c1      = i2c1, \
+  .nI2c2      = i2c2, \
+  .nI2c3      = i2c3, \
+  .nLpTim1    = lptim1, \
+  .nSAI1      = sai1, \
+  .nFDCan     = fdcan, \
+  .nClk48     = clk48, \
+  .nAdc12     = adc12, \
+  .nAdc345    = adc345, \
+
+// enumerations ---------------------------------------------------------------
+/// enumerate the sources for the system clock
+typedef enum _SYSCLKSRC
+{
+  SYSCLK_SRC_HSI16 = 0,           ///< High Speed Clock Internal / divided
+  SYSCLK_SRC_HSE,                 ///< High Speed Clock External
+  SYSCLK_SRC_PLLR,                ///< PLLR clock
+  SYSCLK_SRC_MAX
+} SYSCLKSRC;
+
+/// enumarate the PLL clock source
+typedef enum _PLLCLKSRC
+{
+  PLLCLK_SRC_NONE = 0,            ///< no 
+  PLLCLK_SRC_HSI16,               ///< High Speed Clock Internal
+  PLLCLK_SRC_HSE,                 ///< High Speed Clock External
+  PLLCLK_SRC_MAX,
+} PLLCLKSRC;
+
+/// enumerate the APB1/2 prescale
+typedef enum _ABPXPRESCALE
+{
+  APBX_PRESCALE_1 = 0,            ///< prescale of 1
+  APBX_PRESCALE_2 = 4,            ///< prescale of 2
+  APBX_PRESCALE_4,                ///< prescale of 4
+  APBX_PRESCALE_8,                ///< prescale of 8
+  APBX_PRESCALE_16,               ///< prescale of 16
+  APBX_PRESCALE_MAX
+} ABPXPRESCALE;
+
+/// enumerate the AHB prescale
+typedef enum _AHBPRESCALE
+{
+  AHB_PRESCALE_1 = 0,             ///< prescale of 1
+  AHB_PRESCALE_3,                 ///< prescale of 3
+  AHB_PRESCALE_5,                 ///< prescale of 5
+  AHB_PRESCALE_6 = 5,             ///< prescale of 6
+  AHB_PRESCALE_10,                ///< prescale of 10
+  AHB_PRESCALE_32,                ///< prescale of 32
+  AHB_PRESCALE_2 = 8,             ///< prescale of 2
+  AHB_PRESCALE_4,                 ///< prescale of 4
+  AHB_PRESCALE_8,                 ///< prescale of 8
+  AHB_PRESCALE_64,                ///< prescale of 64
+  AHB_PRESCALE_128,               ///< prescale of 128
+  AHB_PRESCALE_256,               ///< prescale of 256
+  AHB_PRESCALE_512,               ///< prescale of 512
+  AHB_PRESCALE_MAX
+} AHBPRESCALE;
+
+/// enumerate the MCO clock source
+typedef enum _MCOCLKSRC
+{
+  MCO_CLKSRC_NONE = 0,            ///< no MCO clock source
+  MCO_CLKSRC_SYSCLK,              ///< system clock
+  MCO_CLKSRC_HSI48,               ///< HSI*48 clock
+  MCO_CLKSRC_HSI16,               ///< HSI*16 clock
+  MCO_CLKSRC_HSE,                 ///< HSE clock
+  MCO_CLKSRC_PLLR,                ///< PLLR
+  MCO_CLKSRC_LSI ,                ///< LSI
+  MCO_CLKSRC_LSE,                 ///< LSE
+  MCO_CLKSRC_PLLP,                ///< PLL P
+  MCO_CLKSRC_PLLQ,                ///< PLL Q
+  MCO_CLKSRC_RTC,                 ///< RTC
+  MCO_CLKSRC_RTCWKUP,             ///< RTCWKUP
+  MCO_CLKSRC_MAX
+} MCOCLKSRC;
+
+/// enumerate the MCO clock prescale
+typedef enum _MCOPRESCALE
+{
+  MCO_PRESCALE_1 = 0,             ///< prescale of 1
+  MCO_PRESCALE_2,                 ///< prescale of 2
+  MCO_PRESCALE_4,                 ///< prescale of 4
+  MCO_PRESCALE_8,                 ///< prescale of 8
+  MCO_PRESCALE_16,                ///< prescale fo 16
+  MCO_PRESCALE_32,                ///< prescale of 32
+  MCO_PRESCALE_64,                ///< prescale of 64
+  MCO_PRESCALE_128,               ///< prescale of 128
+  MCO_PRESCALE_256,               ///< prescale of 256
+  MCO_PRESCALE_512,               ///< prescale of 512
+  MCO_PRESCALE_1024,              ///< prescale of 1024
+  MCO_PRESCALE_MAX
+} MCOPRESCALE;
+
+/// enumerate the UART/LPUART clock source
+typedef enum _UARTCLKSRC
+{
+  UART_CLKSRC_PCLK1 = 0,          ///< PCLK1
+  UART_CLKSRC_PCLK2,              ///< PCLK2
+  UART_CLKSRC_SYSCLK,             ///< SYSCLK
+  UART_CLKSRC_HSI16,              ///< HSI16
+  UART_CLKSRC_LSE,                ///< LSE
+  UART_CLKSRC_MAX
+} UARTCLKSRC;
+
+/// enumerate the I2C clock source
+typedef enum _I2CCLKSRC
+{
+  I2C_CLKSRC_PCLK1 = 0,           ///< PCLK1
+  I2C_CLKSRC_SYSCLK,              ///< SYSCLK
+  I2C_CLKSRC_HSI16,               ///< HSI16
+  I2C_CLKSRC_MAX
+} I2CCLKSRC;
+
+/// enumerate the I2S clock source
+typedef enum _I2SCLKSRC
+{
+  I2S_CLKSRC_SYSCLK = 0,          ///< SYSCLK
+  I2S_CLKSRC_PLLQ,                ///< PLLQ
+  I2S_CLKSRC_HSI16,               ///< HSI16
+  I2S_CLKSRC_CLKIN,               ///< external clock
+  I2S_CLKSRC_MAX
+} I2SCLKSRC;
+
+/// enumerate the FDCAN clock source
+typedef enum _FDCANCLKSRC
+{
+  FDCAN_CLKSRC_HSE = 0,           ///< HSE
+  FDCAN_CLKSRC_PLLQ,              ///< PLLQ
+  FDCAN_CLKSRC_PCLK1,             ///< PCLK1
+  FDCAN_CLKSRC_MAX
+} FDCANCLKSRC;
+
+/// enumerate the LPTIM clock select
+typedef enum _LPTIMCLKSRC
+{
+  LPTIM_CLKSRC_PCLK1 = 0,              ///< PCLK clock source
+  LPTIM_CLKSRC_LSI,                    ///< LSI clock sourc
+  LPTIM_CLKSRC_HSI16,                  ///< HSI clock source
+  LPTIM_CLKSRC_LSE,                    ///< LSE clock source
+  LPTIM_CLKSRC_MAX
+} LPTIMCLKSRC;
+
+/// enumerate the timer clock
+typedef enum _TIMXCLKSRC
+{
+  TIMX_CLKSRC_TIMPCLK = 0,              ///< timer input clock
+  TIMX_CLKSRC_PLLQ,                     ///< PLLQ
+  TIMX_CLKSRC_MAX
+} TIMXCLKSRC;
+
+/// enumerate the ADC clock source
+typedef enum _ADCCLKSRC
+{
+  ADC_CLKSRC_SYSCLK = 0,                ///< system clock
+  ADC_CLKSRC_PLLP,                      ///< PLL P Clock
+  ADC_CLKSRC_MAX
+} ADCCLKSRC;
+
+/// enumerate the USB clock source
+typedef enum _CLK48CLKSRC
+{
+  CLK48_CLKSRC_HSI48 = 0,                 ///< HSI48 clock
+  CLK48_CLKSRC_PLLQ,                      ///< PLL Q clock
+  CLK48_CLKSRC_MAX
+} CLK48CLKSRC;
+
+/// enumerate the PLL divider
+typedef enum _PLLXDIVIDER
+{
+  PLLX_DIVIDER_1 = 0,
+  PLLX_DIVIDER_2,
+  PLLX_DIVIDER_3,
+  PLLX_DIVIDER_4,
+  PLLX_DIVIDER_5,
+  PLLX_DIVIDER_6,
+  PLLX_DIVIDER_7,
+  PLLX_DIVIDER_8,
+  PLLX_DIVIDER_MAX
+} PLLXDIVIDER;
+
+/// enumerate the PLL-P divider
+typedef enum _PLLPDIVIDER
+{
+  PLLP_DIVIDER_2 = 1,
+  PLLP_DIVIDER_3,
+  PLLP_DIVIDER_4,
+  PLLP_DIVIDER_5,
+  PLLP_DIVIDER_6,
+  PLLP_DIVIDER_7,
+  PLLP_DIVIDER_8,
+  PLLP_DIVIDER_9,
+  PLLP_DIVIDER_10,
+  PLLP_DIVIDER_11,
+  PLLP_DIVIDER_12,
+  PLLP_DIVIDER_13,
+  PLLP_DIVIDER_14,
+  PLLP_DIVIDER_15,
+  PLLP_DIVIDER_16,
+  PLLP_DIVIDER_17,
+  PLLP_DIVIDER_18,
+  PLLP_DIVIDER_19,
+  PLLP_DIVIDER_20,
+  PLLP_DIVIDER_21,
+  PLLP_DIVIDER_22,
+  PLLP_DIVIDER_23,
+  PLLP_DIVIDER_24,
+  PLLP_DIVIDER_25,
+  PLLP_DIVIDER_26,
+  PLLP_DIVIDER_27,
+  PLLP_DIVIDER_28,
+  PLLP_DIVIDER_29,
+  PLLP_DIVIDER_30,
+  PLLP_DIVIDER_31,
+  PLLP_DIVIDER_32,
+  PLLP_DIVIDER_MAX
+} PLLPDIVIDER;
+
+/// define the clock enumerations
+typedef enum _CLOCKMUXSEL
+{
+  CLOCK_MUXSEL_ADC12 = 0,
+  CLOCK_MUXSEL_ADC345,
+  CLOCK_MUXSEL_CRS,
+  CLOCK_MUXSEL_DAC,
+  CLOCK_MUXSEL_FDCAN,
+  CLOCK_MUXSEL_I2C1,
+  CLOCK_MUXSEL_I2C2,
+  CLOCK_MUXSEL_I2C3,
+  CLOCK_MUXSEL_LPTIM1,
+  CLOCK_MUXSEL_LPUART1,
+  CLOCK_MUXSEL_PWR,
+  CLOCK_MUXSEL_TIM1,
+  CLOCK_MUXSEL_TIM2,
+  CLOCK_MUXSEL_TIM3,
+  CLOCK_MUXSEL_TIM4,
+  CLOCK_MUXSEL_TIM6,
+  CLOCK_MUXSEL_TIM7,
+  CLOCK_MUXSEL_TIM8,
+  CLOCK_MUXSEL_TIM15,
+  CLOCK_MUXSEL_TIM16,
+  CLOCK_MUXSEL_TIM17,
+  CLOCK_MUXSEL_TIM20,
+  CLOCK_MUXSEL_USART1,
+  CLOCK_MUXSEL_USART2,
+  CLOCK_MUXSEL_USART3,
+  CLOCK_MUXSEL_UART4,
+  CLOCK_MUXSEL_UART5,
+  CLOCK_MUXSEL_WDG,
+  CLOCK_MUXSEL_MAX
+} CLOCKMUXSEL;
+
+// structures -----------------------------------------------------------------
+/// define the system clock definition structure
+typedef struct PACKED _CLKSYSDEF
+{
+  SYSCLKSRC     eSysClkSrc;       ///< clock source
+  PLLCLKSRC     ePllClkSrc;       ///< PLL clock source
+  BOOL          bHsePreDiv2Enb;   ///< enable the HSE divide by 2 prescale
+  PLLXDIVIDER   ePllDiv;          ///< PLL divider
+  U8            nPllMult;         ///< PLL multiplier
+  PLLPDIVIDER   ePllPDiv;         ///< PLL PCLck output prescale
+  PLLXDIVIDER   ePllQDiv;         ///< PLL QCLck output prescale
+  PLLXDIVIDER   ePllRDiv;         ///< PLL RCLck output prescale
+  AHBPRESCALE   eAhbPrescale;     ///< AHB prescale
+  ABPXPRESCALE  eApb1Prescale;    ///< APB1 prescale
+  U32           uExtFreq;         ///< external frequency
+  ABPXPRESCALE  eApb2Prescale;    ///< APB2 prescale
+} CLKSYSDEF, *PCLKSYSDEF;
+#define CLKSYSDEF_SIZE                          sizeof( CLKSYSDEF )
+
+/// define the AHB #1 clock enable structure
+typedef struct PACKED _CLKAHB1ENBDEF
+{
+  BOOL          bDMA1     : 1;      ///< DMA1
+  BOOL          bDMA2     : 1;      ///< DMA2
+  BOOL          bDMAMux   : 1;      ///< DMAMux
+  BOOL          bCordic   : 1;      ///< cordic
+  BOOL          bFMAC     : 1;      ///< FMAC
+  BOOL          bFlash    : 1;      ///< Flash
+  BOOL          bCRC      : 1;      ///< CRC
+} CLKAHB1ENBDEF, *PCLKAHB1ENBDEF;
+#define CLKAHB1ENBDEF_SIZE                      sizeof( CLKAHB1ENBDEF )
+
+/// define the AHB #2 clock enable structure
+typedef struct PACKED _CLKAHB2ENBDEF
+{
+  BOOL          bGPIOA    : 1;      ///< GPIOA
+  BOOL          bGPIOB    : 1;      ///< GPIOB
+  BOOL          bGPIOC    : 1;      ///< GPIOC
+  BOOL          bGPIOD    : 1;      ///< GPIOD
+  BOOL          bGPIOE    : 1;      ///< GPIOE
+  BOOL          bGPIOF    : 1;      ///< GPIOF
+  BOOL          bGPIOG    : 1;      ///< GPIOG
+  BOOL          bADC12    : 1;      ///< ADC12
+  BOOL          bADC345   : 1;      ///< ADC345
+  BOOL          bDAC1     : 1;      ///< DAC1
+  BOOL          bDAC3     : 1;      ///< DAC3
+  BOOL          bRNG      : 1;      ///< RNG
+} CLKAHB2ENBDEF, *PCLKAHB2ENBDEF;
+#define CLKAHB2ENBDEF_SIZE                       sizeof( CLKAHB2ENBDEF )
+
+/// define the AHB #3 clock enable structure
+typedef struct PACKED _CLKAHB3ENBDEF
+{
+  BOOL          bQSPI     : 1;      ///< QPSI
+} CLKAHB3ENBDEF, *PCLKAHB3ENBDEF;
+#define CLKAHB3ENBDEF_SIZE                       sizeof( CLKAHB3ENBDEF )
+
+/// define the APB1 clock enable structure
+typedef struct PACKED_CLKAPB1ENBDEF
+{
+  BOOL          bTim2   : 1;      ///< timer #2
+  BOOL          bTim3   : 1;      ///< timer #3
+  BOOL          bTim4   : 1;      ///< timer #4
+  BOOL          bTim6   : 1;      ///< timer #6
+  BOOL          bTim7   : 1;      ///< timer #7
+  BOOL          bCRS    : 1;      ///< CRS
+  BOOL          bRTC    : 1;      ///< RTC
+  BOOL          bWWDG   : 1;      ///< WDG
+  BOOL          bSpi2   : 1;      ///< SPI2
+  BOOL          bSpi3   : 1;      ///< SPI3
+  BOOL          bUsart2 : 1;      ///< USART #2
+  BOOL          bUsart3 : 1;      ///< USART #3
+  BOOL          bUart4  : 1;      ///< UART #4
+  BOOL          bUart5  : 1;      ///< UART #5
+  BOOL          bI2c1   : 1;      ///< IC2C1
+  BOOL          bI2c2   : 1;      ///< IC2C2
+  BOOL          bUSB    : 1;      ///< USB
+  BOOL          bFDCan  : 1;      ///< FD Can
+  BOOL          bPwr    : 1;      ///< power
+  BOOL          bI2c3   : 1;      ///< IC2C3
+  BOOL          bLpTim1 : 1;      ///< low power timer #1
+  BOOL          bLpUart1 : 1;     ///< low power uart #1
+} CLKAPB1ENBDEF, *PCLKAPB1ENBDEF;
+#define CLKAPB1ENBDEF_SIZE              sizeof( CLKAPB1ENBDEF )
+
+/// define the APB2 clock enable structure
+typedef struct PACKED _CLKAPB2ENBDEF
+{
+  BOOL          bSysCfg : 1;      ///< System Config
+  BOOL          bTim1   : 1;      ///< timer #1
+  BOOL          bSpi1   : 1;      ///< SPI1
+  BOOL          bTim8   : 1;      ///< timer #8
+  BOOL          bUsart1 : 1;      ///< USART #1
+  BOOL          bTim15  : 1;      ///< timer #15
+  BOOL          bTim16  : 1;      ///< timer #16
+  BOOL          bTim17  : 1;      ///< timer #17
+  BOOL          bTim20  : 1;      ///< timer #20
+  BOOL          bSai1   : 1;      ///< SAI1
+} CLKAPB2ENBDEF, *PCLKAPB2ENBDEF;
+#define CLKAPB2ENBDEF_SIZE              sizeof( CLKAPB2ENBDEF )
+
+/// define clock peripheral  clock source structure
+typedef struct PACKED _CLKPERSRCDEF
+{
+  UARTCLKSRC    nUsart1;        ///< USART1 clock source
+  UARTCLKSRC    nUsart2;        ///< USART2 clock source
+  UARTCLKSRC    nUsart3;        ///< USART3 clock source
+  UARTCLKSRC    nUart4;         ///< UART4 clock source
+  UARTCLKSRC    nUart5;         ///< UART5 clock source
+  UARTCLKSRC    nLpUart1;       ///< LPUART1 clock source
+  I2CCLKSRC     nI2c1;          ///< IC21 clock source
+  I2CCLKSRC     nI2c2;          ///< I2C2 clock source
+  I2CCLKSRC     nI2c3;          ///< I2C3 clock source
+  LPTIMCLKSRC   nLpTim1;        ///< LP timer 1 clock source
+  I2SCLKSRC     nSAI1;          ///< SAI1 clock source
+  I2SCLKSRC     nI2S23;         ///< I2S23 clock source
+  FDCANCLKSRC   nFDCan;         ///< FDCAN clock slource
+  CLK48CLKSRC   nClk48;         ///< CLOCK 48 clock source
+  ADCCLKSRC     nAdc12;         ///< ADC12 clock source
+  ADCCLKSRC     nAdc345;        ///< ADC345 clock source
+} CLKPERSRCDEF, *PCLKPERSRCDEF;
+#define CLKPERSRCDEF_SIZE                sizeof( CLKPERSRCDEF )
+
+/**@} EOF Clock_def.h */
+
+#endif  // _CLOCK_DEF_H
+
