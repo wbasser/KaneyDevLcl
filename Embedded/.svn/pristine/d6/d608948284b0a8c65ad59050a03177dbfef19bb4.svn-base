@@ -1,0 +1,424 @@
+/******************************************************************************
+ * @file ButtonManagerDynamic.c
+ *
+ * @brief button manager implementation
+ *
+ * This file provides the implementation for the button magnager
+ *
+ * @copyright Copyright (c) 2012 CyberIntegration
+ * This document contains proprietary data and information of CyberIntegration 
+ * LLC. It is the exclusive property of CyberIntegration, LLC and will not be 
+ * disclosed in any form to any party without prior written permission of 
+ * CyberIntegration, LLC. This document may not be reproduced or further used 
+ * without the prior written permission of CyberIntegration, LLC.
+ *
+ * Version History
+ * ======
+ * $Log: $
+ * 
+ *
+ * \addtogroup ButtonManagerDynamic
+ * @{
+ *****************************************************************************/
+
+// system includes ------------------------------------------------------------
+
+// local includes -------------------------------------------------------------
+#include "ButtonManagerDynamic/ButtonManagerDynamic.h"
+
+// library includes -----------------------------------------------------------
+#include "TaskScheduler/TaskScheduler.h"
+
+// Macros and Defines ---------------------------------------------------------
+/// define the process rate in MSECS
+#define BTNMANAGER_PROCESS_RATE_MSECS           ( 50 )
+
+/// define the process task priority/events/exec rate
+#define PROCESS_TASK_PRIORITY                   ( 4 )
+#define PROCESS_TASK_NUMNRMEVENTS               ( 2 )
+#define PROCESS_TASK_NUMPRIEVENTS               ( 0 )
+#define PROCESS_TASK_EXECUTION_RATE             ( TASKSCHEDULER_TIME_MSEC( BTNMANAGER_PROCESS_RATE_MSECS ))
+
+// enumerations ---------------------------------------------------------------
+// define the button states
+typedef enum
+{
+  BTN_STATE_RELEASED = 0,   ///< button is released
+  BTN_STATE_DEBOUNCE,       ///< button is being debounce
+  BTN_STATE_PRESSED,        ///< button has been pressed
+  BTN_STATE_STUCK,          ///< button is stuck
+} BTNSTATE;
+
+// structures -----------------------------------------------------------------
+// define the control structure
+typedef struct PACKED _BTNCTL
+{
+  struct _BTNCTL*   ptNextBtn;              ///< pointer to the next structure
+  GPIOENUM          eGpioEnum;              ///< GPIO enum
+  BTNSTATE          eState;                 ///< button state
+  U16               wDelayCounts;           ///< delay counts
+  U16               wHoldCounts;            ///< hold count
+  BOOL              bOffOn;                 ///< button on/off
+  BTNENUM           eBtnEnum;               ///< button enumerator
+  struct
+  {
+    BOOL            bShort            : 1;  ///< short hold detected
+    BOOL            bMedium           : 1;  ///< medium hold detected
+    BOOL            bLong             : 1;  ///< long hold detected
+  } tHoldDets;
+  struct
+  {
+    BOOL            bReleaseEnable    : 1;  ///< enable release events
+    BOOL            bPressEnable      : 1;  ///< enable press events
+    BOOL            bRepeatEnable     : 1;  ///< enable repeat events
+    BOOL            bShortHoldEnable  : 1;  ///< enable short hold events
+    BOOL            bMediumHoldEnable : 1;  ///< medium hold events
+    BOOL            bLongHoldEnable   : 1;  ///< enable long hold events
+    BOOL            bToggleEnable     : 1;  ///< enable toggle operations
+  } tEventFlags;
+  PVBTNMNGRCBFUNC   pvCallback;             ///< callback function
+} BTNCTL, *PBTNCTL;
+#define BTNCTL_SIZE                     sizeof( BTNCTL )
+
+/// define the key global settings
+typedef struct PACKED _BTNPARAMS
+{
+  U16   wDebounceTimeMsecs;       ///< debounce time
+  U16   wRepeatDelayMsecs;        ///< repeat delay
+  U16   wRepeatRateMsecs;         ///< repeat rate
+  U16   wShortHoldTimeMsecs;      ///< short hold time
+  U16   wMediumHoldTimeMsecs;     ///< medium hold time
+  U16   wLongHoldTimeMsecs;       ///< long hold time
+  U16   wStuckTimeMsecs;          ///< stuck key time
+} BTNPARAMS, *PBTNPARAMS; 
+#define BTNPARAMS_SIZE                  sizeof( BTNPARAMS )
+
+// global parameter declarations ----------------------------------------------
+
+// local parameter declarations -----------------------------------------------
+static  PBTNCTL               ptFirstBtn;
+static  BTNPARAM              tParams;  
+static  PTASKSCHEDULERHANDLE  ptProcessTask;
+
+// local function prototypes --------------------------------------------------
+static  BOOL  ProcessTask( TASKSCHEDULEREVENT xEvent );
+static  void  PostEvent( BTNMNGRENUM eKey, BTNMNGREVENTS eEvent, PBTNCTL ptCtl );
+
+// constant parameter initializations -----------------------------------------
+
+/******************************************************************************
+ * @function ButtonManagerDynamic_Initialize
+ *
+ * @brief initialize the button manager
+ *
+ * This function initializes the control structure for the button manager
+ *
+ * @param[in]   wDebounceTimeMsecs;       ///< debounce time
+ * @param[in]   wRepeatDelayMsecs;        ///< repeat delay
+ * @param[in]   wRepeatRateMsecs;         ///< repeat rate
+ * @param[in]   wShortHoldTimeMsecs;      ///< short hold time
+ * @param[in]   wMediumHoldTimeMsecs;     ///< medium hold time
+ * @param[in]   wLongHoldTimeMsecs;       ///< long hold time
+ * @param[in]   wStuckTimeMsecs;          ///< stuck key time
+ *
+ * @return  TRUE if errors detected, FALSE otherwise
+ *
+ *****************************************************************************/
+BOOL ButtonManagerDynamic_Initialize( U16 wDebnMsecs, U16 wRptDlyMsecs, U16 wRptRateMsecs, U16 wHoldShrtMsecs, U16 wHoldMedMsecs, U16 wHoldLongMsecs, U16 wHoldStuckMsecs )
+{
+  BOOL  bStatus = FALSE;
+  
+  // clear the first button
+  ptFirstBtn = NULL;
+  
+  // set the parameters
+  tParams.wDebounceTimeMsecs = wDebounceTimeMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wRepeatDelayMsecs = wRepeatDelayMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wRepeatRateMsecs = wRepeatRateMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wShortHoldTimeMsecs = wShortHoldTimeMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wMediumHoldTimeMsecs = wMediumHoldTimeMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wLongHoldTimeMsecs = wLongHoldTimeMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  tParams.wStuckTimeMsecs = wStuckTimeMsecs / BTNMANAGER_PROCESS_RATE_MSECS;
+  
+  // create the process task
+  ptProcessTask = TaskScheduler_Create( TASKSCHEDULER_TYPE_TIMED_CONTINUOUS, 
+                                        ProcessTask, 
+                                        PROCESS_TASK_NUMNRMEVENTS, 
+                                        PROCESS_TASK_NUMPRIEVENTS, 
+                                        PROCESS_TASK_EXECUTION_RATE, 
+                                        PROCESS_TASK_PRIORITY, 
+                                        TRUE, 
+                                        FALSE 
+                                      );
+  
+  // return the status
+  return( bStatus );
+}
+
+/******************************************************************************
+ * @function ButtonManagerDynamic_CreateButton
+ *
+ * @brief create a button
+ *
+ * This function will create a button
+ *
+ * @param[in]   eGpioEnum;          ///< GPIO enum
+ * @param[in]   bReleaseEnb;        ///< release enable
+ * @param[in]   bPressEnb;          ///< press enable
+ * @param[in]   bRptEnb;            ///< repeat enable
+ * @param[in]   bShortEnb;          ///< short hold enable
+ * @param[in]   bMedEnb;            ///< medium hold enable
+ * @param[in]   bLongEnb;           ///< long hold enable
+ * @param[in]   bTglEnb;            ///< tobble enable
+ * @param[in]   pvCallback;         ///< pointer to the callback function
+ *
+ * @return  button enumeration, -1 if error
+ *
+ *****************************************************************************/
+BTNENUM ButtonManagerDynamic_CreateButton( GPIOENUM, eGpioEnum, BOOL bReleaseEnb, BOOL bPressEnb, BOOL bRptEnb, BOOL bShortEnb, BOOL bMedEnb, BOOL bLongEnb, BOOL bTglEnb, PVBTNMNGRCBFUNC pvCallback )
+{
+  BTNENUM eBtnEnum = -1;
+  PBTNCTL ptNewBtn, ptCurBtn, ptLastBtn;
+  
+  // allocate space for the new button
+  if (( ptNewBtn = malloc( BTNCTL_SIZE )) != NULL )
+  {
+    // clear all fields
+    memSet( ptNewBtn, 0, BTNCTL_SIZE );
+    
+    // now copy the parameters
+    ptNewBtn->eGpioEnum = eGpioEnum;
+    ptNewBtn->tEnableFlags.bReleaseEnable    = bReleaseEnb;
+    ptNewBtn->tEnableFlags.bPressEnable      = bPressEnb;
+    ptNewBtn->tEnableFlags.bRepeatEnable     = bRptEnb;
+    ptNewBtn->tEnableFlags.bShortHoldEnable  = bShortEnb;
+    ptNewBtn->tEnableFlags.bMediumHoldEnable = bMedEnb;
+    ptNewBtn->tEnableFlags.bLongHoldEnable   = bLongEnb;
+    ptNewBtn->tEnableFlags.bToggleEnable     = bTglEnb;
+    ptNewBtn->pvCallback = pvCallback;
+    
+    // set the button enum
+    eBtnEnum = 1;
+
+    // now add the button
+    if ( ptFirstBtn == NULL )
+    {
+      // set the first button
+      ptFirstBtn = ptNewBtn;
+    }
+    else
+    {
+      // find last empty button
+      ptCurBtn = ptFirstBtn;
+      while( ptCurBtn != NULL )
+      {
+        // increment the button enum
+        eBtnEnum++;
+        
+        // copy the last button
+        ptLastBtn = ptCurBtn;
+        
+        // set the new current button
+        ptCurBtn = ptCurBtn->ptNextBtn;
+      }
+      
+      // add the button
+      ptLastBtn->ptCurBtn = ptNewBtn;
+      
+      // set the enumerator
+      ptNewBtn->eBtnEnum = eBtnEnum;
+    }
+  }
+  
+  // return the enumerator
+  return( eBtnEnum );
+}
+
+/******************************************************************************
+ * @function ButtonManagerDynamic_Process
+ *
+ * @brief button manager process
+ *
+ * This function processes all defined buttons and determines there current statees
+ *
+ *****************************************************************************/
+static void ProcessTask( void )
+{
+  BTNCTL*       ptCurBtn;
+  BOOL          bKeyState;
+  
+  // for each button
+  ptCurBtn = ptFirstBtn;
+  while( ptCurBtn != NULL )
+  {
+    // get the current pin status
+    Gpio_Get( ptCurBtn->eGpioEnum, &bKeyState );
+    
+    // deterime which state this button is in
+    switch( ptCurBtn->eState )
+    {
+      // key is released
+      case BTN_STATE_RELEASED :
+        // is this button pressed
+        if ( bKeyState )
+        {
+          // set the debounce time/goto debounce state
+          ptCurBtn->wDelayCounts = tParams.wDebounceTimeMsecs;
+          ptCurBtn->eState = BTN_STATE_DEBOUNCE;
+        }
+        break;
+        
+      // key is being debounced
+      case BTN_STATE_DEBOUNCE :
+        // check to see if key is still pressed
+        if ( bKeyState )
+        {
+          // set the delay to repeat delay/set state to pressed/generate an event
+          ptCurBtn->wDelayCounts = tParams.wRepeatDelayMsecs;
+          ptCurBtn->eState = BTN_STATE_PRESSED;
+          
+          // clear the hold events
+          ptCurBtn->tHoldDets.bShort = OFF;
+          ptCurBtn->tHoldDets.bMedium = OFF;
+          ptCurBtn->tHoldDets.bLong = OFF;
+          
+          // check for tobble
+          if ( ptCurBtn->tEventFlags.bToggleEnable )
+          {
+            // toggle the button off/on state/post the toggle event
+            ptCurBtn->bOffOn ^= TRUE;
+            PostEvent(( ptCurBtn->bOffOn ) ? BTNMNGR_EVENT_BTNON : BTNMNGR_EVENT_BTNOFF, ptCurBtn );
+          }
+          else
+          {
+            // post a pressed event
+            PostEvent( BTNMNGR_EVENT_PRESSED, ptCurBtn );
+          }
+        }
+        else
+        {
+          // just go back to released
+          ptCurBtn->eState = BTN_STATE_RELEASED;
+        }
+        break;
+        
+      // key is pressed
+      case BTN_STATE_PRESSED :
+        // check to see if key is still pressed
+        if ( bKeyState )
+        {
+          if ( --ptCurBtn->wDelayCounts == 0 )
+          {
+            // set delay time for repeat delay/goto press
+            ptCurBtn->wDelayCounts = tParams.wRepeatRateMsecs;
+            PostEvent( BTNMNGR_EVENT_REPEAT, ptCurBtn );
+          }
+          
+          // increment the hold time
+          ptCurBtn->wHoldCounts++;
+
+          // check for short hold
+          if (( ptCurBtn->wHoldCounts >= tParams.wShortHoldTimeMsecs ) & ( !ptCurBtn->tHoldDets.bShort ))
+          {
+            // mark it
+            ptCurBtn->tHoldDets.bShort = ON;
+            
+            // generate an event
+            PostEvent( BTNMNGR_EVENT_SHORTHOLD, ptCurBtn );
+          }
+          
+          // check for medimum hold
+          if (( ptCurBtn->wHoldCounts >= tParams.wMediumHoldTimeMsecs ) & ( !ptCurBtn->tHoldDets.bMedium ))
+          {
+            // mark it
+            ptCurBtn->tHoldDets.bMedium = ON;
+            
+            // generate an event
+            PostEvent( BTNMNGR_EVENT_MEDIUMHOLD, ptCurBtn );
+          }
+          
+          // check for long hold
+          if (( ptCurBtn->wHoldCounts >= tParams.wLongHoldTimeMsecs ) && ( !ptCurBtn->tHoldDets.bLong ))
+          {
+            // mark it
+            ptCurBtn->tHoldDets.bLong = ON;
+            
+            // generate an event
+            PostEvent( BTNMNGR_EVENT_LONGHOLD, ptCurBtn );
+          }
+          
+          // check for stuck key
+          if ( ptCurBtn->wHoldCounts >= tParams.wStuckTimeMsecs )
+          {
+            // generate an event
+            PostEvent( BTNMNGR_EVENT_STUCK, ptCurBtn );
+            
+            // goto stuck key state
+            ptCurBtn->eState = BTN_STATE_STUCK;
+          }
+        }
+        else
+        {
+          // back to released
+          ptCurBtn->eState = BTN_STATE_RELEASED;
+          
+          // generate an event/reset the hold counts
+          PostEvent( BTNMNGR_EVENT_RELEASED, ptCurBtn );
+          ptCurBtn->wHoldCounts = 0;
+        }
+        break;
+        
+      // key is stuck
+      case BTN_STATE_STUCK :
+        // check for key released
+        if ( !bKeyState )
+        {
+          // generate a release event
+          PostEvent( BTNMNGR_EVENT_RELEASED, ptCurBtn );
+          
+          // goto released state
+          ptCurBtn->eState = BTN_STATE_RELEASED;
+        }
+        break;
+        
+      default :
+        // should never happen - reset back to released
+        ptCurBtn->eState = BTN_STATE_RELEASED;
+        break;
+    }
+  }
+}
+
+/******************************************************************************
+ * @function PostEvent
+ *
+ * @brief post event or call the callback function
+ *
+ * This function either post and event or call the callback if defined
+ *
+ * @param[in]   eEvent    event
+ * @param[in]   ptCtl     pointer to the button control
+ *  
+ *****************************************************************************/
+static void PostEvent( BTNMNGREVENTS eEvent, PBTNCTL ptCtl )
+{
+  // determine if there the event is enabled
+  if (( ptCtl->tEventFlags.bReleaseEnable    && ( eEvent == BTNMNGR_EVENT_RELEASED ))   ||
+      ( ptCtl->tEventFlags.bPressEnable      && ( eEvent == BTNMNGR_EVENT_PRESSED ))    ||
+      ( ptCtl->tEventFlags.bRepeatEnable     && ( eEvent == BTNMNGR_EVENT_REPEAT ))     ||
+      ( ptCtl->tEventFlags.bShortHoldEnable  && ( eEvent == BTNMNGR_EVENT_SHORTHOLD ))  ||
+      ( ptCtl->tEventFlags.bMediumHoldEnable && ( eEvent == BTNMNGR_EVENT_MEDIUMHOLD )) ||
+      ( ptCtl->tEventFlags.bToggleEnable     && ( eEvent == BTNMNGR_EVENT_BTNON ))      ||
+      ( ptCtl->tEventFlags.bToggleEnable     && ( eEvent == BTNMNGR_EVENT_BTNOFF ))     ||
+      ( ptCtl->tEventFlags.bLongHoldEnable   && ( eEvent == BTNMNGR_EVENT_LONGHOLD )))
+  {
+    // event is enabled - process
+    if ( ptDef->pvCallback != NULL )
+    {
+      // call the cllback
+      ptDef->pvCallback( ptCtl->eBtnEnum, eEvent );
+    }
+  }
+}
+
+/**@} EOF ButtonManagerDynamic.c */

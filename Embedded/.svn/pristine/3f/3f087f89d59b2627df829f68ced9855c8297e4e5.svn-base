@@ -1,0 +1,66 @@
+/******************************************************************************
+ * @file ButtonManagerDynamic.h
+ *
+ * @brief Button Manager declarations
+ *
+ * This file provides the declarations for the button manager
+ *
+ * @copyright Copyright (c) 2012 CyberIntegration
+ * This document contains proprietary data and information of CyberIntegration 
+ * LLC. It is the exclusive property of CyberIntegration, LLC and will not be 
+ * disclosed in any form to any party without prior written permission of 
+ * CyberIntegration, LLC. This document may not be reproduced or further used 
+ * without the prior written permission of CyberIntegration, LLC.
+ *
+ * Version History
+ * ======
+ * $Log: $
+ * 
+ *
+ * \addtogroup ButtonManagerDynamic
+ * @{
+ *****************************************************************************/
+ 
+// ensure only one instantiation
+#ifndef _BUTTONMANAGERDYNAMIC_H
+#define _BUTTONMANAGERDYNAMIC_H
+
+// system includes ------------------------------------------------------------
+
+// local includes -------------------------------------------------------------
+
+// library includes -----------------------------------------------------------
+
+// Macros and Defines ---------------------------------------------------------
+
+// enumerations ---------------------------------------------------------------
+/// enumerate the events
+typedef enum _BTNMNGREVENTS
+{
+  BTNMNGR_EVENT_RELEASED = 0,     ///< 0 - button released
+  BTNMNGR_EVENT_PRESSED,          ///< 1 - button pressed
+  BTNMNGR_EVENT_REPEAT,           ///< 2 - button repeat
+  BTNMNGR_EVENT_SHORTHOLD,        ///< 3 - button short hold
+  BTNMNGR_EVENT_MEDIUMHOLD,       ///< 4 - button medimum hold
+  BTNMNGR_EVENT_LONGHOLD,         ///< 5 - button long hold
+  BTNMNGR_EVENT_STUCK,            ///< 6 - button stuck
+  BTNMNGR_EVENT_BTNOFF,           ///< 7 - button toggle off
+  BTNMNGR_EVENT_BTNON             ///< 8 - button toggle on
+} BTNMNGREVENTS;
+
+// structures -----------------------------------------------------------------
+/// define the Gbutton type
+typedef U32     BTNENUM;
+
+/// define the callback function event
+typedef void ( *PVBTNMNGRCBFUNC  )( BTNENUM eBtnEnum, BTNMNGREVENT xEvent );
+
+// global parameter declarations -----------------------------------------------
+
+// global function prototypes --------------------------------------------------
+extern  BOOL    ButtonManagerDynamic_Initialize( U16 wDebnMsecs, U16 wRptDlyMsecs, U16 wRptRateMsecs, U16 wHoldShrtMsecs, U16 wHoldMedMsecs, U16 wHoldLongMsecs, U16 wHoldStuckMsecs );
+extern  BTNENUM ButtonManagerDynamic_CreateButton( GPIOENUM eGpioEnum, BOOL bReleaseEnb, BOOL bPressEnb, BOOL bShortEnb, BOOL bMedEnb, BOOL bLongEnb, BOOL bTglEnb, PVBTNMNGRCBFUNC pvCallback );
+
+/**@} EOF ButtonManagerDynamic.h */
+
+#endif  // _BUTTONMANAGERDYNAMIC_H

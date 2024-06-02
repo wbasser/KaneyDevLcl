@@ -1,0 +1,545 @@
+/******************************************************************************
+ * @file Clock.c
+ *
+ * @brief clock module implementation
+ *
+ * This file clock module initialization and up/down scaling
+ *
+ * @copyright Copyright (c) 2012 Cyber Integration
+ * This document contains proprietary data and information of Cyber Integration 
+ * LLC. It is the exclusive property of Cyber Integration, LLC and will not be 
+ * disclosed in any form to any party without prior written permission of 
+ * Cyber Integration, LLC. This document may not be reproduced or further used 
+ * without the prior written permission of Cyber Integration, LLC.
+ *
+ * Version History
+ * ======
+ * Rev: $
+ * 
+ *
+ * \addtogroup Clock
+ * @{
+ *****************************************************************************/
+
+// system includes ------------------------------------------------------------
+
+// library includes -----------------------------------------------------------
+#include "Interrupt/Interrupt.h"
+
+// local includes -------------------------------------------------------------
+#include "Clock/Clock.h"
+
+// Macros and Defines ---------------------------------------------------------
+/// define the internal oscillator frequencies
+#define CLK_HSI_FREQ                            ( 16000000ul )
+#define CLK_LSI_FREQ                            ( 32000ul )
+#define CLK_LSE_FREQ                            ( 32768ul )
+
+// enumerations ---------------------------------------------------------------
+/// enumerate the selection of the peripheral bus interfaces
+typedef enum _APBSELECT
+{
+  APBSELECT_APB1 = 0,
+  APBSELECT_APB2,
+  APBSELECT_MAX
+} APBSELECT;
+
+// structures -----------------------------------------------------------------
+
+// global parameter declarations ----------------------------------------------
+
+// local parameter declarations -----------------------------------------------
+static  U32   uSystemClockFreq;
+static  U32   uPllPClkFreq;
+static  U32   uPllQClkFreq;
+static  U32   uPllRClkFreq;
+
+// local function prototypes --------------------------------------------------
+static  void  ConfigurePll( PCLKSYSDEF ptClkDef );
+static  void  ConfigureAhb( void );
+static  void  ConfigureApb1( void );
+static  void  ConfigureApb2( void );
+static  void  ConfigurePerClocks( void );
+static  void  ComputeSystemClockFreq( void );
+static  U32   GetUartUsartI2cClkFreq( APBSELECT eApbSel, SERCLKSRC eClkSRc );
+static  U32   GetLpTimerClkFreq( LPTIMCLKSRC eClkSRc );
+
+
+// constant parameter initializations -----------------------------------------
+// define the AHB prescale table
+static const U32 auAhbPrescale[ ] =
+{
+  0, 0, 0, 0, 0, 0, 0, 0, 
+  1, 2, 3, 4, 6, 7, 8, 9  
+};
+
+/// define the APBX prescale table
+static const U32 auApbxPrescale[ ] =
+{
+  1, 1, 1, 1, 2, 4, 8, 16
+};
+
+/******************************************************************************
+ * @function Clock_Initialization
+ *
+ * @brief clock initialization
+ *
+ * This function will initialize the clock control module
+ *
+ * @return True if errors detected, FALSE otherwise
+ *
+ *****************************************************************************/
+BOOL Clock_Initialize( void )
+{
+  PCLKSYSDEF  ptClkDef;
+  U32         uTemp;
+  
+  // clear the PLL clock frequencies
+  uPllPClkFreq = uPllQClkFreq = uPllRClkFreq = 0;
+
+  // set the pointer
+  ptClkDef = ( PCLKSYSDEF )&g_tClkSysDef;
+  
+  // determine the clock source
+  switch( ptClkDef->eSysClkSrc )
+  {
+    case SYSCLK_SRC_HSISYS :
+      // turn on the clock/wait ready
+      RCC->CR  |= RCC_CR_HSION;
+      while(( RCC->CR & RCC_CR_HSIRDY ) != RCC_CR_HSIRDY);
+      break;
+      
+    case SYSCLK_SRC_HSE :
+      RCC->CR |= RCC_CR_HSEON;
+      while(( RCC->CR & RCC_CR_HSERDY ) != RCC_CR_HSERDY );
+      break;
+      
+    case SYSCLK_SRC_PLL :
+      // determine the source of the 
+      switch( ptClkDef->ePllClkSrc )
+      {
+        case PLLCLK_SRC_HSI16 :
+          // turn on the clock/wait ready
+          RCC->CR  |= RCC_CR_HSION;
+          while(( RCC->CR & RCC_CR_HSIRDY ) != RCC_CR_HSIRDY );
+          break;
+          
+        case PLLCLK_SRC_HSE :
+          RCC->CR |= RCC_CR_HSEON;
+          while(( RCC->CR & RCC_CR_HSERDY ) != RCC_CR_HSERDY );
+          break;
+          
+        default :
+          //#error "Illegal PLL clock source!"
+          break;
+      }
+      
+      // now set upt the PLL
+      ConfigurePll( ptClkDef );
+      break;
+      
+    default :
+      // this is an error - report it
+      //#error "Illegal System Clock Source!"
+      break;
+  }
+  
+  // setup the prescales/MCO clock source/
+  uTemp = BITS( ptClkDef->eAhbPrescale, RCC_CFGR_HPRE_Pos );
+  uTemp |= BITS( ptClkDef->eApb1Prescale, RCC_CFGR_PPRE1_Pos );
+  uTemp |= BITS( ptClkDef->eApb2Prescale, RCC_CFGR_PPRE2_Pos );
+  uTemp |= BITS( ptClkDef->eSysClkSrc, RCC_CFGR_SW_Pos );
+  RCC->CFGR = uTemp;
+  
+  // now wait for clock source to be active
+  while(( RCC->CFGR & RCC_CFGR_SWS ) != BITS( ptClkDef->eSysClkSrc, RCC_CFGR_SWS_Pos ));
+  
+  // set up the AHB/APB1/APB2 clock enables
+  ConfigureAhb( );
+  ConfigureApb1( );
+  ConfigureApb2( );
+
+  // set up the peripheral clock sources
+  ConfigurePerClocks( );
+
+  // compute clock frequency
+  ComputeSystemClockFreq( );
+
+  // return ok
+  return( FALSE );
+}
+
+/******************************************************************************
+ * @function Clock_Close
+ *
+ * @brief close the clock
+ *
+ * This function will close the clock
+ *
+ *****************************************************************************/
+void Clock_Close( void )
+{
+}
+
+/******************************************************************************
+ * @function Clock_GetSysClkFreq
+ *
+ * @brief get the current clock frequency
+ *
+ * This function will return the current clock frequency
+ *
+ *  @return     the frequency of the main clock
+ *
+ *****************************************************************************/
+U32 Clock_GetSysClkFreq( void )
+{
+  // GetSystemClockSource
+  return( uSystemClockFreq );
+}
+
+/******************************************************************************
+ * @function Clock_GetAPB1Frequency
+ *
+ * @brief get the current APB1 clock frequency
+ *
+ * This function will return the current APB1 clock frequency
+ *
+ *  @return     the frequency of the main clock
+ *
+ *****************************************************************************/
+U32 Clock_GetAPB1Frequency( void )
+{
+  U32 uApbFreq;
+
+  // get the base frequency
+  uApbFreq = uSystemClockFreq;
+
+  // compute the divisor
+  uApbFreq >>= auApbxPrescale[ ( RCC->CFGR & RCC_CFGR_PPRE1 ) >> RCC_CFGR_PPRE1_Pos ];
+
+  // return the freq
+  return( uApbFreq );
+}
+
+/******************************************************************************
+ * @function Clock_GetAPB2Frequency
+ *
+ * @brief get the current APB2 clock frequency
+ *
+ * This function will return the current APB2 clock frequency
+ *
+ *  @return     the frequency of the main clock
+ *
+ *****************************************************************************/
+U32 Clock_GetAPB2Frequency( void )
+{
+  U32 uApbFreq;
+
+  // get the base frequency
+  uApbFreq = uSystemClockFreq;
+
+  // compute the divisor
+  uApbFreq >>= auApbxPrescale[ ( RCC->CFGR & RCC_CFGR_PPRE2 ) >> RCC_CFGR_PPRE2_Pos ];
+
+  // return the freq
+  return( uApbFreq );
+}
+
+/******************************************************************************
+ * @function Clock_GetPerClkMuxFrequency
+ *
+ * @brief get the current peripheral clock frequency
+ *
+ * This function will return the current clock frequency for a given peripheral
+ * mux
+ *
+ *  @param[in]  eClkMuxEnum   clock mux enumeration
+ *
+ *  @return     the frequency of the main clock
+ *
+ *****************************************************************************/
+U32 Clock_GetPerClkMuxFrequency( CLKMUXENUM eClkMuxEnum )
+{
+  U32 uClkMuxFreq = 0;
+
+  switch( eClkMuxEnum )
+  {
+
+    default :
+      break;
+  }
+
+  // return the frequency
+  return( uClkMuxFreq );
+}
+
+/******************************************************************************
+ * @function Clock_SetMasterClockOutput
+ *
+ * @brief set the master clock output
+ *
+ * This function will set the master clock output
+ *
+ * @param[in] eSrc      clock source
+ * @param[in] ePrescale clock prescale
+ *
+ *****************************************************************************/
+void Clock_SetMasterClockOutput( MCOCLKSRC eSrc, MCOPRESCALE ePrescale )
+{
+  U32 uTemp;
+
+  // read the register
+  uTemp = RCC->CFGR;
+
+  // remove the current MCO settings
+  uTemp &= 0x00FFFFFF;
+
+  // now set the new settings
+  uTemp |= BITS( eSrc, RCC_CFGR_MCOSEL_Pos );
+  uTemp |= BITS( ePrescale, RCC_CFGR_MCOPRE_Pos );
+
+  // now write it back out
+  RCC->CFGR = uTemp;
+}
+
+/******************************************************************************
+ * @function ConfigurePll
+ *
+ * @brief PLL configuration
+ *
+ * This function will configure the PLL
+ *
+ *  @param[in]      ptClkDef    pointer to the clock defitinion
+ *
+ *****************************************************************************/
+static void ConfigurePll( PCLKSYSDEF ptClkDef )
+{
+  U32 uTemp, uRefClk;
+  
+  // set up the PLL
+  uTemp = RCC_PLLCFGR_PLLREN;
+  uTemp |= RCC_PLLCFGR_PLLPEN;
+  uTemp |= RCC_PLLCFGR_PLLQEN;
+  uTemp |= BITS( ptClkDef->ePllClkSrc, RCC_PLLCFGR_PLLSRC_Pos );
+  uTemp |= BITS( ptClkDef->ePllDiv, RCC_PLLCFGR_PLLN_Pos );
+  uTemp |= BITS( ptClkDef->nPllMult, RCC_PLLCFGR_PLLM_Pos );
+  uTemp |= BITS( ptClkDef->ePllPDiv, RCC_PLLCFGR_PLLP_Pos );
+  uTemp |= BITS( ptClkDef->ePllQDiv, RCC_PLLCFGR_PLLQ_Pos );
+  uTemp |= BITS( ptClkDef->ePllRDiv, RCC_PLLCFGR_PLLR_Pos );
+
+  // write the config
+  RCC->PLLCFGR = uTemp;
+
+  // turn it on/wait till it is ready
+  RCC->CR |= RCC_CR_PLLON;
+  while(( RCC->CR & RCC_CR_PLLRDY ) != RCC_CR_PLLRDY );
+
+  // now set the clock frequency
+  switch(( RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC ) >> RCC_PLLCFGR_PLLSRC_Pos )
+  {
+    case PLLCLK_SRC_HSI16 :
+      uRefClk = CLK_HSI_FREQ;
+      break;
+
+    case PLLCLK_SRC_HSE :
+      uRefClk = CLK_HSE_FREQ;
+      break;
+
+    default :
+      break;
+  }
+
+  // calcuate the clock frequencies
+  uTemp = ( uRefClk / ptClkDef->ePllDiv ) * ptClkDef->nPllMult;
+  uPllPClkFreq = uTemp / ptClkDef->ePllPDiv;
+  uPllQClkFreq = uTemp / ptClkDef->ePllQDiv;
+  uPllRClkFreq = uTemp / ptClkDef->ePllRDiv;
+}
+
+/******************************************************************************
+ * @function ConfigureAhb
+ *
+ * @brief AHB configuration
+ *
+ * This function will configure the AHB
+ *
+ *****************************************************************************/
+static void ConfigureAhb( void )
+{
+  PCLKAHB1ENBDEF  ptClkAhb1EnbDef;
+  PCLKAHB2ENBDEF  ptClkAhb2EnbDef;
+  U32             uTemp;
+  
+  // set the pointers
+  ptClkAhb1EnbDef = ( PCLKAHB1ENBDEF )&g_tClkAhb1EnbDef;
+  ptClkAhb2EnbDef = ( PCLKAHB2ENBDEF )&g_tClkAhb2EnbDef;
+  
+  // build the AHB1 value/write it
+  uTemp =  ( ptClkAhb1EnbDef->bDMA1 )    ? RCC_AHB1ENR_DMA1EN   : 0;
+  uTemp |= ( ptClkAhb1EnbDef->bDMA2 )    ? RCC_AHB1ENR_DMA2EN   : 0;
+  uTemp |= ( ptClkAhb1EnbDef->bFlash )   ? RCC_AHB1ENR_FLASHEN  : 0;
+  uTemp |= ( ptClkAhb1EnbDef->bCrc )     ? RCC_AHB1ENR_CRCEN    : 0;
+  uTemp |= ( ptClkAhb1EnbDef->bAes )     ? RCC_AHB1ENR_AESEN    : 0;
+  uTemp |= ( ptClkAhb1EnbDef->bRng )     ? RCC_AHB1ENR_RNGEN    : 0;
+  RCC->AHB1ENR = uTemp;
+}
+
+/******************************************************************************
+ * @function ConfigureApb1
+ *
+ * @brief Apb1 configuration
+ *
+ * This function will configure the APB1
+ *
+ *****************************************************************************/
+static void ConfigureApb1( void )
+{
+  PCLKAPB1ENBDEF  ptClkApb1EnbDef;
+  U32             uTemp;
+
+  // set the pointer
+  ptClkApb1EnbDef = ( PCLKAPB1ENBDEF )&g_tClkApb1EnbDef;
+  
+  // build the APB1 reg 1 value/write it
+  uTemp =  ( ptClkApb1EnbDef->bTim2 )     ? RCC_APB1ENR1_TIM2EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bTim3 )     ? RCC_APB1ENR1_TIM3EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bTim4 )     ? RCC_APB1ENR1_TIM4EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bTim6 )     ? RCC_APB1ENR1_TIM6EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bTim7 )     ? RCC_APB1ENR1_TIM7EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bLpUart2 )  ? RCC_APB1ENR1_LPUART2EN  : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUsart5 )   ? RCC_APB1ENR1_USART5EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUsart6 )   ? RCC_APB1ENR1_USART6EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bRTC )      ? RCC_APB1ENR1_RTCAPBEN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bWWDG )     ? RCC_APB1ENR1_WWDGEN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bFdCan )    ? RCC_APB1ENR1_FDCANEN    : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUSB )      ? RCC_APB1ENR1_USBEN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bSpi2 )     ? RCC_APB1ENR1_SPI2EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bSpi3 )     ? RCC_APB1ENR1_SPI3EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bCRS )      ? RCC_APB1ENR1_CRSEN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUsart2 )   ? RCC_APB1ENR1_USART2EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUsart3 )   ? RCC_APB1ENR1_USART3EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUsart4 )   ? RCC_APB1ENR1_USART4EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bLpUart1 )  ? RCC_APB1ENR1_LPUART1EN  : 0;
+  uTemp |= ( ptClkApb1EnbDef->bI2c1 )     ? RCC_APB1ENR1_I2C1EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bI2c2 )     ? RCC_APB1ENR1_I2C2EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bI2c3 )     ? RCC_APB1ENR1_I2C3EN     : 0;
+  uTemp |= ( ptClkApb1EnbDef->bCEC )      ? RCC_APB1ENR1_CECEN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUCPD1 )    ? RCC_APB1ENR1_UCPD1EN    : 0;
+  uTemp |= ( ptClkApb1EnbDef->bUCPD2 )    ? RCC_APB1ENR1_UCPD2EN    : 0;
+  uTemp |= ( ptClkApb1EnbDef->bDbg )      ? RCC_APB1ENR1_DBGEN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bPwr )      ? RCC_APB1ENR1_PWREN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bDAC )      ? RCC_APB1ENR1_DACEN      : 0;
+  uTemp |= ( ptClkApb1EnbDef->bLpTim1 )   ? RCC_APB1ENR1_LPTIM1EN   : 0;
+  uTemp |= ( ptClkApb1EnbDef->bLpTim2 )   ? RCC_APB1ENR1_LPTIM2EN   : 0;
+  RCC->APBENR1 = uTemp;
+}
+
+/******************************************************************************
+ * @function ConfigureApb2
+ *
+ * @brief Apb1 configuration
+ *
+ * This function will configure the APB2
+ *
+ *****************************************************************************/
+static void ConfigureApb2( void )
+{
+  PCLKAPB2ENBDEF  ptClkApb2EnbDef;
+  U32             uTemp;
+
+  // set the pointer
+  ptClkApb2EnbDef = ( PCLKAPB2ENBDEF )&g_tClkApb2EnbDef;
+  
+  // build the APB1 reg 2 value/write it
+  uTemp =  ( ptClkApb2EnbDef->bSysCfg )   ? RCC_APB2ENR_SYSCFGEN  : 0;
+  uTemp |= ( ptClkApb2EnbDef->bTim1 )     ? RCC_APB2ENR_TIM1EN    : 0;
+  uTemp |= ( ptClkApb2EnbDef->bSpi1 )     ? RCC_APB2ENR_SPI1EN    : 0;
+  uTemp |= ( ptClkApb2EnbDef->bUsart1 )   ? RCC_APB2ENR_USART1EN  : 0;
+  uTemp |= ( ptClkApb2EnbDef->bTim14 )    ? RCC_APB2ENR_TIM14EN   : 0;
+  uTemp |= ( ptClkApb2EnbDef->bTim15 )    ? RCC_APB2ENR_TIM15EN   : 0;
+  uTemp |= ( ptClkApb2EnbDef->bTim16 )    ? RCC_APB2ENR_TIM16EN   : 0;
+  uTemp |= ( ptClkApb2EnbDef->bTim17 )    ? RCC_APB2ENR_TIM17EN   : 0;
+  uTemp |= ( ptClkApb2EnbDef->bADC )      ? RCC_APB2ENR_ADCEN     : 0;
+  RCC->APBENR2 = uTemp;
+}
+
+/******************************************************************************
+ * @function ConfigurePerClocks
+ *
+ * @brief peripheral clock selection
+ *
+ * This function will configure the periapheral clock selection
+ *
+ *****************************************************************************/
+static void ConfigurePerClocks( void )
+{
+  PCLKPERSRC1DEF  ptClkPerSrc1Def;
+  PCLKPERSRC2DEF  ptClkPerSrc2Def;
+  U32             uTemp;
+
+  // set the pointer to the configuration
+  ptClkPerSrc1Def = ( PCLKPERSR1CDEF )&g_tClkPerSrc1Def;
+
+  // build the value/write it
+  uTemp =   ( ptClkPerSrc1Def->nUsart1ClkSrc  << RCC_CCIPR_USART1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nUsart2ClkSrc  << RCC_CCIPR_USART2SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nUsart3ClkSrc  << RCC_CCIPR_USART3SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nHdmiCecClkSrc << RCC_CCIPR_CECSEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nLpUart1ClkSrc << RCC_CCIPR_LPUART1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nLpUart2ClkSrc << RCC_CCIPR_LPUART2SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nI2c1ClkSrc    << RCC_CCIPR_I2C1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nI2c2ClkSrc    << RCC_CCIPR_I2C2SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nLpTim1ClkSrc  << RCC_CCIPR_LPTIM1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nLpTim2ClkSrc  << RCC_CCIPR_LPTIM2SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nTim1ClkSrc    << RCC_CCIPR_TIM1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nTim15ClkSrc   << RCC_CCIPR_TIM15SEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nRngClkSrc     << RCC_CCIPR_RNGSEL_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nRngDivSel     << RCC_CCIPR_RNGDIV_Pos );
+  uTemp |=  ( ptClkPerSrc1Def->nAdcClkSrc     << RCC_CCIPR_ADCSEL_Pos );
+  RCC->CCIPR = uTemp;
+
+  // set the pointer to the configuration
+  ptClkPerSrc2Def = ( PCLKPERSR2CDEF )&g_tClkPerSrc2Def;
+
+  // build the value/write it
+  uTemp =   ( ptClkPerSrc2Def->nI2s1ClkSrc    << RCC_CCIPR2_I2S1SEL_Pos );
+  uTemp |=  ( ptClkPerSrc2Def->nI2s2ClkSrc    << RCC_CCIPR2_I2S2SEL_Pos );
+  uTemp |=  ( ptClkPerSrc2Def->nFdCanClkSrc   << RCC_CCIPR2_FDCANSEL_Pos );
+  uTemp |=  ( ptClkPerSrc2Def->nUSbClkSrc     << RCC_CCIPR2_USBSEL_Pos );
+  RCC->CCIPR2 = uTemp;
+}
+
+/******************************************************************************
+ * @function ComputeSystemClockFreq
+ *
+ * @brief compute the system clock frequency
+ *
+ * This function will compute the system clock frequency
+ *
+ *****************************************************************************/
+static void ComputeSystemClockFreq( void )
+{
+  // now determine the clock source
+  switch(( RCC->CFGR & RCC_CFGR_SWS ) >> RCC_CFGR_SWS_Pos )
+  {
+    case SYSCLK_SRC_HSE :
+      // set the freq to the HSE value
+      uSystemClockFreq = CLK_HSE_FREQ;
+      break;
+
+    case SYSCLK_SRC_PLL :
+      uSystemClockFreq = uPllRClkFreq;
+      break;
+
+    case SYSCLK_SRC_HSI16 :
+    default :
+      // set the freq to the HSI value
+      uSystemClockFreq = CLK_HSI_FREQ;
+      break;
+  }
+
+  // apply the prescaler
+  uSystemClockFreq >>= auAhbPrescale[ ( RCC->CFGR & RCC_CFGR_HPRE ) >> RCC_CFGR_HPRE_Pos ];
+}
+
+/**@} EOF Clock.c */
