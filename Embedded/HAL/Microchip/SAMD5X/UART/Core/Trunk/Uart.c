@@ -459,6 +459,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_0 ] );
     }
+    void SERCOM0_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_0 ] );
+    }
+    void SERCOM0_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_0 ] );
+    }
+    void SERCOM0_3_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_0 ] );
+    }
   #endif // UART_CHAN0_IN_USE
 #endif // SERCOM0
 
@@ -473,6 +488,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
      *
      *****************************************************************************/
     void SERCOM1_0_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_1 ] );
+    }
+    void SERCOM1_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_1 ] );
+    }
+    void SERCOM1_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_1 ] );
+    }
+    void SERCOM1_3_Handler( void )
     {
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_1 ] );
@@ -528,6 +558,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_3 ] );
     }
+    void SERCOM3_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_3 ] );
+    }
+    void SERCOM3_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_3 ] );
+    }
+    void SERCOM3_3_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_3 ] );
+    }
   #endif // UART_CHAN3_IN_USE
 #endif // SERCOM3
 
@@ -542,6 +587,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
      *
      *****************************************************************************/
     void SERCOM4_0_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_4 ] );
+    }
+    void SERCOM4_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_4 ] );
+    }
+    void SERCOM4_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_4 ] );
+    }
+    void SERCOM4_3_Handler( void )
     {
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_4 ] );
@@ -564,6 +624,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_5 ] );
     }
+    void SERCOM5_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_5 ] );
+    }
+    void SERCOM5_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_5 ] );
+    }
+    void SERCOM5_3_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_5 ] );
+    }
   #endif // UART_CHAN5_IN_USE
 #endif // SERCOM5
 
@@ -582,6 +657,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_6 ] );
     }
+    void SERCOM6_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_6 ] );
+    }
+    void SERCOM6_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_6 ] );
+    }
+    void SERCOM6_3_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_6 ] );
+    }
   #endif // UART_CHAN6_IN_USE
 #endif // SERCOM6
 
@@ -596,6 +686,21 @@ UARTERR Uart_Close( UARTDEVENUM eDev )
      *
      *****************************************************************************/
     void SERCOM7_0_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_7 ] );
+    }
+    void SERCOM7_1_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_7 ] );
+    }
+    void SERCOM7_2_Handler( void )
+    {
+      // call the common handler
+      Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_7 ] );
+    }
+    void SERCOM7_3_Handler( void )
     {
       // call the common handler
       Irq0CommonHandler( aePhyToDefMap[ UART_CHAN_7 ] );

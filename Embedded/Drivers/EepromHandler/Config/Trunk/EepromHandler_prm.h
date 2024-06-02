@@ -35,22 +35,21 @@
 #include "SystemTick/SystemTick.h"
 
 // define ---------------------------------------------------------------------
+/// define the macro to enable EUI capability
+#define EEPROMHANDLER_ENABLE_EUICAP                 ( OFF )
+
 /// define the slave address
 #define	EEPROMHANDLER_DEV_ADDR                      ( 0x50 )
+#if ( EEPROMHANDLER_ENABLE_EUICAP == ON )
+  #define EEPROMHANDLER_EUI_ADDR                    ( 0x51 )
+  #define EEPROMHANDLER_EUI_BASEADDR                ( 0x98 )
+#endif
 
 /// define the size of the device
-#define	EEPROMHANDLER_DEV_SIZE                      ( 1024 )
+#define	EEPROMHANDLER_DEV_SIZE                      ( 256)
 
 /// define the size of the block in page write
 #define EEPROMHANDLER_BLK_SIZE                      ( 16 )
-
-/// define the macro to enable page address in device addresss
-#define EEPROMHANDLER_PAGE_IN_DEVADDR               ( ON )
-
-/// define the page mask
-#if ( EEPROMHANDLER_PAGE_IN_DEVADDR  == ON )
-  #define EEPROMHANDER_PAGE_MASK                    ( 0x03 )
-#endif
 
 /// define the size of the address
 #define EEPROMHANDLER_ADR_SIZE                      ( 1 )
@@ -65,7 +64,7 @@
 #define EEPROMHANDLER_PRMBLOCK_BASE_ADDR            ( 0 )
 
 /// define the base address for the log block
-#define EEPROMHANDLER_LOGBLOCK_BASE_ADDR            ( 512 )
+#define EEPROMHANDLER_LOGBLOCK_BASE_ADDR            ( 192 )
 
 /// define the enumeration for the I2C
 #define EEPROMHANDLER_I2C_ENUM                      ( I2C_DEV_ENUM_LCLBUS )
@@ -77,8 +76,8 @@
 #define EEPROMHANDLER_ENABLE_DEBUGCOMMANDS          ( ON )
 
 #if ( EEPROMHANDLER_ENABLE_DEBUGCOMMANDS == ON )
-/// define the system mode to allow debug commands in
-#define EEPROMHANDLER_DIAGMODE_ENUM                 ( SYSCTRLMNGR_LCLMODE_DIAGNOSTICS )
+  /// define the system mode to allow debug commands in
+  #define EEPROMHANDLER_DIAGMODE_ENUM                 ( SYSCTRLMNGR_LCLMODE_DIAGNOSTICS )
 #endif
 
 /// define the macro to enable EEPROM emulation
@@ -88,12 +87,14 @@
 #define EEPROMHANDLER_ENABLE_BACKGROUND_WRITES      ( OFF )
 
 #if (( SYSTEMDEFINE_OS_SELECTION == SYSTEMDEFINE_OS_TASKMANAGER ) && ( EEPROMHANDLER_ENABLE_BACKGROUND_WRITES == 1 ))
-/// define the background write task enum
-#define EEPROM_HANDLER_BACKGROUND_TASK_ENUM         ( TASK_SCHD_ILLEGAL )
+  /// define the background write task enum
+  #define EEPROM_HANDLER_BACKGROUND_TASK_ENUM         ( TASK_SCHD_ILLEGAL )
 #endif
 
 /// define the page write time
 #define EEPROMHANDLER_PAGE_WRITE_MSECS              ( 10 )
+
+
 
 #endif  // _EEPROMHANDLER_PRM_H
 

@@ -217,6 +217,7 @@ U32 EepromHandler_GetSystemTime( void )
  *
  * This function will read a block of data from the eeprom
  *
+ * @param[in]   nDevAddr    device address
  * @param[in]   wAddress    address to read from
  * @param[in]   wLength     length to read
  * @param[i0]   pnData      pointer to the data storage
@@ -224,7 +225,7 @@ U32 EepromHandler_GetSystemTime( void )
  * @return      TRUE if errors, FALSE if OK
  *
  *****************************************************************************/
-BOOL EepromHandler_LclRdBlock( U16 wAddress, U16 wLength, PU8 pnData )
+BOOL EepromHandler_LclRdBlock( U8 nDevAddr, U16 wAddress, U16 wLength, PU8 pnData )
 {
   BOOL      bStatus;
   I2CXFRCTL tXfrCtl;
@@ -234,10 +235,7 @@ BOOL EepromHandler_LclRdBlock( U16 wAddress, U16 wLength, PU8 pnData )
   tXfrCtl.nAddrLen = EEPROMHANDLER_ADR_SIZE;
 
   // set the the device address
-  tXfrCtl.nDevAddr = EEPROMHANDLER_DEV_ADDR;
-  #if ( EEPROMHANDLER_PAGE_IN_DEVADDR == ON )
-    tXfrCtl.nDevAddr |= ( HI16(wAddress ) & EEPROMHANDER_PAGE_MASK );
-  #endif
+  tXfrCtl.nDevAddr = nDevAddr;
 
   // calculate the read timeout
   tXfrCtl.uTimeout = RDBLOCK_MAX_TIMEOUT + COMPUTE_BLOCK_TIME( wLength );
@@ -260,6 +258,7 @@ BOOL EepromHandler_LclRdBlock( U16 wAddress, U16 wLength, PU8 pnData )
  *
  * This function will read a block of data from the eeprom
  *
+ * @param[in]   nDevAddr    device address
  * @param[in]   wAddress    address to read from
  * @param[in]   wLength     length to read
  * @param[i0]   pnData      pointer to the data storage
@@ -267,7 +266,7 @@ BOOL EepromHandler_LclRdBlock( U16 wAddress, U16 wLength, PU8 pnData )
  * @return      TRUE if errors, FALSE if OK
  *
  *****************************************************************************/
-BOOL EepromHandler_LclWrBlock( U16 wAddress, U16 wLength, PU8 pnData )
+BOOL EepromHandler_LclWrBlock( U8 nDevAddr, U16 wAddress, U16 wLength, PU8 pnData )
 {
   BOOL      bStatus;
   I2CXFRCTL tXfrCtl;
@@ -277,10 +276,7 @@ BOOL EepromHandler_LclWrBlock( U16 wAddress, U16 wLength, PU8 pnData )
   tXfrCtl.nAddrLen = EEPROMHANDLER_ADR_SIZE;
 
   // set the the device address
-  tXfrCtl.nDevAddr = EEPROMHANDLER_DEV_ADDR;
-  #if ( EEPROMHANDLER_PAGE_IN_DEVADDR == ON )
-    tXfrCtl.nDevAddr |= ( HI16(wAddress ) & EEPROMHANDER_PAGE_MASK );
-  #endif
+  tXfrCtl.nDevAddr = nDevAddr;
 
   // set the pointer to the data/length
   tXfrCtl.pnData = pnData;

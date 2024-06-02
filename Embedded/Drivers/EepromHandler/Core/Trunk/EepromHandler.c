@@ -344,7 +344,7 @@ EEPROMERR EepromHandler_RdBlock( U16 wAddress, U16 wLength, PU8 pnData )
     if ( eError == EEPROM_ERR_NONE )
     {
       #if (( EEPROMHANDLER_ENABLE_EMULATION == OFF ) && ( EEPROMHANDLER_ENABLE_BACKGROUND_WRITES == OFF ))
-        eError = ( EepromHandler_LclRdBlock( wAddress, wLength, pnData )) ? EEPROM_ERR_I2CERR : EEPROM_ERR_NONE;
+        eError = ( EepromHandler_LclRdBlock( EEPROMHANDLER_DEV_ADDR, wAddress, wLength, pnData )) ? EEPROM_ERR_I2CERR : EEPROM_ERR_NONE;
       #else
         // copy from the local area
         memcpy( pnData, &anEeprom[ wAddress ], wLength ); 
@@ -468,7 +468,7 @@ EEPROMERR EepromHandler_WrBlock( U16 wAddress, U16 wLength, PU8 pnData )
         nBlkLength = MIN( nBlkLength, wLength );
 
         // write this block
-        if (( eError = WriteBlock( wAddress, nBlkLength, pnData )) == EEPROM_ERR_NONE )
+        if (( eError = WriteBlock( EEPROMHANDLER_DEV_ADDR, wAddress, nBlkLength, pnData )) == EEPROM_ERR_NONE )
         {
           // adjust the address/adjust the length
           wLength -= nBlkLength;
@@ -505,6 +505,32 @@ EEPROMERR EepromHandler_WrBlock( U16 wAddress, U16 wLength, PU8 pnData )
   // return the error
   return( eError );
 }
+
+#if ( EEPROMHANDLER_ENABLE_EUICAP == ON )
+  /******************************************************************************
+   * @function EepromHandler_ReadEUI
+   *
+   * @brief read the EUI block
+   *
+   * This function will read the EUI block from the EEPROM
+   *
+   * @param[io]   pnData      pointer to the be read
+   * @param[in]   nLength     length of data storage   
+   *
+   * @return      error enumeration
+   *
+   *****************************************************************************/
+  EEPROMERR EepromHandler_ReadEUI PU8 pnData, U8 nLength )
+  {
+    EEPROMERR   eError = EEPROM_ERR_NONE;
+
+    // now read the EUI value
+    eError = EepromHandler_LclRdBlock( EEPROMHANDLER_EUI_ADDR, EEPROMHANDLER_EUI_BASEADDR, nLength, pnData );
+
+    // return the error
+    return( eError );
+  }
+#endif
 
 #if ( EEPROMHANDLER_ENABLE_EMULATION == OFF )
   /******************************************************************************
@@ -545,7 +571,7 @@ EEPROMERR EepromHandler_WrBlock( U16 wAddress, U16 wLength, PU8 pnData )
     if ( eError == EEPROM_ERR_NONE )
     {
       // write the blok
-      eError = ( EepromHandler_LclWrBlock( wAddress, nBlkLength, pnData )) ? EEPROM_ERR_I2CERR : EEPROM_ERR_NONE;
+      eError = ( EepromHandler_LclWrBlock( EEPROMHANDLER_DEV_ADDR, wAddress, nBlkLength, pnData )) ? EEPROM_ERR_I2CERR : EEPROM_ERR_NONE;
       
       // set the check for busy
       bCheckForBusyRequired = TRUE;

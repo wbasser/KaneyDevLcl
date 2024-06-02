@@ -96,7 +96,8 @@ void I2c_Initialize( void )
   SercomI2cm*             ptI2c;
   U32                     uTemp;
   SERCOM_I2CM_CTRLA_Type  tCtrlA;
-  
+  U8                      nIdx, nBaseIrq;
+
   // for each device
   for ( eDev = 0; eDev < I2C_DEV_ENUM_MAX; eDev++ )
   {
@@ -118,10 +119,16 @@ void I2c_Initialize( void )
     // enable the interrupts
     aePhyToDefMap[ ptDef->eChan ] = eDev;
     
-    // enable the interrupt in the NVIC
-    NVIC_EnableIRQ( SERCOM0_0_IRQn + ( ptDef->eChan * 4 ));
-    NVIC_SetPriority( SERCOM0_0_IRQn + ( ptDef->eChan * 4 ), 3 );
-      
+    // for each interrupt line
+    nBaseIrq = ( SERCOM0_0_IRQn + ( ptDef->eChan * 4 ));
+    for ( nIdx = nBaseIrq; nIdx < ( nBaseIrq + 4 ); nIdx++ )
+    {
+      // enable the interrupt in the NVIC     
+      NVIC_DisableIRQ( nIdx );
+      NVIC_ClearPendingIRQ( nIdx );
+      NVIC_EnableIRQ( nIdx );
+    }
+
     // now build control A
     tCtrlA.reg = SERCOM_I2CM_CTRLA_MODE( 5 );
     tCtrlA.reg |= ( ptDef->bRunStandby ) ? SERCOM_I2CM_CTRLA_RUNSTDBY : 0;
@@ -512,7 +519,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 0
    *
    *****************************************************************************/
-  void SERCOM0_Handler( void )
+  void SERCOM0_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_0 ] );
+  }
+  void SERCOM0_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_0 ] );
+  }
+  void SERCOM0_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_0 ] );
+  }
+  void SERCOM0_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_0 ] );
@@ -530,7 +552,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 1
    *
    *****************************************************************************/
-  void SERCOM1_Handler( void )
+  void SERCOM1_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_1 ] );
+  }
+  void SERCOM1_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_1 ] );
+  }
+  void SERCOM1_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_1 ] );
+  }
+  void SERCOM1_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_1 ] );
@@ -548,7 +585,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 2
    *
    *****************************************************************************/
-  void SERCOM2_Handler( void )
+  void SERCOM2_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_2 ] );
+  }
+  void SERCOM2_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_2 ] );
+  }
+  void SERCOM2_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_2 ] );
+  }
+  void SERCOM2_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_2 ] );
@@ -566,7 +618,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 3
    *
    *****************************************************************************/
-  void SERCOM3_Handler( void )
+  void SERCOM3_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_3 ] );
+  }
+  void SERCOM3_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_3 ] );
+  }
+  void SERCOM3_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_3 ] );
+  }
+  void SERCOM3_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_3 ] );
@@ -584,7 +651,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 4
    *
    *****************************************************************************/
-  void SERCOM4_Handler( void )
+  void SERCOM4_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_4 ] );
+  }
+  void SERCOM4_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_4 ] );
+  }
+  void SERCOM4_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_4 ] );
+  }
+  void SERCOM4_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_4 ] );
@@ -602,7 +684,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 5
    *
    *****************************************************************************/
-  void SERCOM5_Handler( void )
+  void SERCOM5_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_5 ] );
+  }
+  void SERCOM5_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_5 ] );
+  }
+  void SERCOM5_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_5 ] );
+  }
+  void SERCOM5_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_5 ] );
@@ -620,7 +717,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 6
    *
    *****************************************************************************/
-  void SERCOM6_Handler( void )
+  void SERCOM6_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_6 ] );
+  }
+  void SERCOM6_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_6 ] );
+  }
+  void SERCOM6_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_6 ] );
+  }
+  void SERCOM6_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_6 ] );
@@ -638,7 +750,22 @@ I2CERR I2c_Close( I2CDEVENUM eDev )
    * This function handles the interrupts from SERCOM 7
    *
    *****************************************************************************/
-  void SERCOM7_Handler( void )
+  void SERCOM7_0_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_7 ] );
+  }
+  void SERCOM7_1_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_7 ] );
+  }
+  void SERCOM7_2_Handler( void )
+  {
+    // call the common handler
+    IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_7 ] );
+  }
+  void SERCOM7_3_Handler( void )
   {
     // call the common handler
     IrqCommonHandler( aePhyToDefMap[ I2C_CHAN_7 ] );

@@ -69,8 +69,8 @@ extern  BOOL  EepromHandler_LclInitialize( void );
   extern  BOOL  EepromHandler_ProcessBackgroundWrite( TASKARG xArg );
 #endif // ( SYSTEMDEFINE_OS_SELECTION == SYSTEMDEFINE_OS_TASKMANAGER )
 extern  U32   EepromHandler_GetSystemTime( void );
-extern  BOOL  EepromHandler_LclRdBlock( U16 wAddress, U16 wLength, PU8 pnData );
-extern  BOOL  EepromHandler_LclWrBlock( U16 wAddress, U16 wLength, PU8 pnData );
+extern  BOOL  EepromHandler_LclRdBlock( U8 nDevAddr, U16 wAddress, U16 wLength, PU8 pnData );
+extern  BOOL  EepromHandler_LclWrBlock( U8 nDevAddr, U16 wAddress, U16 wLength, PU8 pnData );
 extern  BOOL  EepromHandler_LclCheckBusy( void );
 
 /**@} EOF EepromHandler_cfg.h */

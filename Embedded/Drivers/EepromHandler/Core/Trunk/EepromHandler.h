@@ -82,6 +82,9 @@ extern  EEPROMERR  EepromHandler_WrByte( U16 wAddress, U8 nData );
 extern  EEPROMERR  EepromHandler_WrWord( U16 wAddress, U16 wData );
 extern  EEPROMERR  EepromHandler_WrLong( U16 wAddress, U32 uData );
 extern  EEPROMERR  EepromHandler_WrBlock( U16 wAddress, U16 wLength, PU8 pnData );
+#if ( EEPROMHANDLER_ENABLE_EUICAP == ON )
+  extern  EEPROMERR EepromHandler_ReadEUI PU8 pnData, U8 nLength );
+#endif
 
 /**@} EOF EepromHandler.h */
 
