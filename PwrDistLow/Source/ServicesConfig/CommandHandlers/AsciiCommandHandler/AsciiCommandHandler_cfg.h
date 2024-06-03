@@ -1,9 +1,9 @@
 /******************************************************************************
- * @file TaskManager_cfg.h
+ * @file AsciiCommandHandler_cfg.h
  *
- * @brief task manager configuration delcarations
+ * @brief 
  *
- * This file provides the enumeration of the tasks 
+ * This file 
  *
  * @copyright Copyright (c) 2012 CyberIntegration
  * This document contains proprietary data and information of CyberIntegration 
@@ -14,58 +14,42 @@
  *
  * Version History
  * ======
- * $Rev: $
+ * $Log: $
  * 
  *
- * \addtogroup TaskManager
+ * \addtogroup AsciiCommandHandler
  * @{
  *****************************************************************************/
  
 // ensure only one instantiation
-#ifndef _TASKMANAGE_CFG_H
-#define _TASKMANAGE_CFG_H
+#ifndef _ASCIICOMMANDHANDLER_CFG_H
+#define _ASCIICOMMANDHANDLER_CFG_H
 
 // system includes ------------------------------------------------------------
 
 // local includes -------------------------------------------------------------
-#include "TaskManager/TaskManager_def.h"
+#include "AsciiCommandHandler/AsciiCommandHandler_def.h"
 
-// library includes ----------------------------------------------------------
+// library includes -----------------------------------------------------------
 
 // Macros and Defines ---------------------------------------------------------
 
 // enumerations ---------------------------------------------------------------
-/// enumerate each scheduled task
-typedef enum _TASKSCHDENUMS
+/// enumerate the number of defined protocols
+typedef enum _ASCCMDENUM
 {
-  // add enumerations here
-  TASK_SCHD_TSTROUTINE = 0,
-  TASK_SCHD_ENUM_DBGHAND,
-
-  // do not remove these declarations
-  TASK_SCHD_MAX,
-  TASK_SCHD_ILLEGAL
-} TASKSCHDENUMS;
-
-#if ( TASK_TICK_ENABLE == 1 )
-  /// enumerate each tick task
-  typedef enum _TASKSTICKENUMS
-  {
-    // add enumerations here
-    
-    // do not remove these declarations
-    TASK_TICK_MAX,
-    TASK_TICK_ILLEGAL
-  } TASKTICKENUMS;
-#endif // TASK_TICK_ENABLE
+  // add enumerations below
+  ASCCMD_ENUM_DBGCMD = 0,
+  
+  // do not remove the items below
+  ASCCMD_ENUM_MAX,
+  ASCCMD_ENUM_ILLEGAL = 0xF
+} ASCCMDENUM;
 
 // global parameter declarations -----------------------------------------------
-extern  const CODE TASKSCHDDEF  g_atTaskSchdDefs[ ];
+extern  const CODE  ASCCMDDEF   g_atAscCmdDefs[ ASCCMD_ENUM_MAX ];
 
-#if ( TASK_TICK_ENABLE == 1 )
-  extern  const CODE TASKTICKDEF  g_atTaskTickDefs[ ];
-#endif  // TASK_TICK_ENABLE
 
-/**@} EOF TaskManager_cfg.h */
+/**@} EOF AsciiCommandHandler_cfg.h */
 
-#endif  // _TASKMANAGE_CFG_H
+#endif  // _ASCIICOMMANDHANDLER_CFG_H

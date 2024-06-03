@@ -1,9 +1,9 @@
 /******************************************************************************
- * @file USART_cfg.c
+ * @file LpUart_cfg.c
  *
- * @brief USART configuraiton implementation
+ * @brief LPUART configuraiton implementation
  *
- * This file pvoides the USART configuration implementation
+ * This file pvoides the LPUART configuration implementation
  *  
  * @copyright Copyright (c) 2012 Cyber Integration
  * This document contains proprietary data and information of Cyber Integration
@@ -17,14 +17,14 @@
  * $Rev: $
  * 
  *
- * \addtogroup USART
+ * \addtogroup LPUART
  * @{
  *****************************************************************************/
 
 // system includes ------------------------------------------------------------
 
 // local includes -------------------------------------------------------------
-#include "USART/USART_cfg.h"
+#include "LPUART/LpUart_cfg.h"
 
 // library includes -----------------------------------------------------------
 #include "DbgAscCommandHandler/DbgAscCommandHandler.h"
@@ -37,57 +37,57 @@
 // structures -----------------------------------------------------------------
 
 // static function prototypes -------------------------------------------------
-static  void  UsartIrqCallback( USARTIRQEVENTS eEvent, U8 nOption );
+static  void  LpUartIrqCallback( LPUARTIRQEVENTS eEvent, U8 nOption );
 
 // global parameter declarations ----------------------------------------------
 /// declare the buffers
-// USART_BUFFER( name, rxsize, txsize );
-USART_BUFFER( DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE ); 
+// LPUART_BUFFER( name, rxsize, txsize );
+LPUARTBUFFER( DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE ); 
 
 /// device configuration table
-const USARTDEF g_tUsartDef = 
+const LPUARTDEF g_tLpUartDef = 
 {
-  // USART_ASYNC_DEF( baudrate, parity, wrdlen, stopbits, name, rxsize, txsize, callback, rcvchr, rcverr, txemp, txcmp, brkdet )
-  USART_ASYNC_DEF( 115200, USART_PARITY_NONE, USART_WRDLEN_8, USART_STOPBIT_1, DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE, UsartIrqCallback, ON, OFF, OFF, OFF, OFF )
+  // LPUART_ASYNC_DEF( baudrate, parity, wrdlen, stopbits, name, rxsize, txsize, callback, rcvchr, rcverr, txemp, txcmp, brkdet )
+  LPUARTASYNCDEF( 115200, LPUART_PARITY_NONE, LPUART_WRDLEN_8, LPUART_STOPBIT_1, DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE, LpUartIrqCallback, ON, OFF, OFF, OFF, OFF )
 };  
 
 
 /******************************************************************************
- * @function USARTIrqCallback
+ * @function LpUartIrqCallback
  *
- * @brief USART IRQ callback
+ * @brief LPUART IRQ callback
  *
- * This function will handle the IRQ events for USART channel 00
+ * This function will handle the IRQ events for LPUART channel 00
  *
  * @param[in]     eEvent    IRQ event
  * @param[in]     nOption   optioanal data
  *
  *****************************************************************************/
-static void UsartIrqCallback( USARTIRQEVENTS eEvent, U8 nOption )
+static void LpUartIrqCallback( LPUARTIRQEVENTS eEvent, U8 nOption )
 {
   // process the event
   switch( eEvent )
   {
     // receive character event
-    case USART_IRQ_EVENT_RXCHAR :
+    case LPUART_IRQ_EVENT_RXCHAR :
       // post it to the event queue
       TaskManager_PostEventIrq( TASK_SCHD_ENUM_DBGHAND, ( TASKARG )nOption );
       break;
 
     // receive error event
-    case USART_IRQ_EVENT_RXERR :
+    case LPUART_IRQ_EVENT_RXERR :
       break;
 
     // transmit empty event
-    case USART_IRQ_EVENT_TXEMP :
+    case LPUART_IRQ_EVENT_TXEMP :
       break;
 
     // transmit complete event
-    case USART_IRQ_EVENT_TXCMP :
+    case LPUART_IRQ_EVENT_TXCMP :
       break;
 
     // break detect event
-    case USART_IRQ_EVENT_BRKDET :
+    case LPUART_IRQ_EVENT_BRKDET :
       break;
 
     default :
@@ -95,4 +95,4 @@ static void UsartIrqCallback( USARTIRQEVENTS eEvent, U8 nOption )
   }
 }
 
-/**@} EOF USART_cfg.c */
+/**@} EOF LPUART_cfg.c */

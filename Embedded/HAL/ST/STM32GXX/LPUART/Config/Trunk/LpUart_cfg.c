@@ -37,7 +37,7 @@
 // structures -----------------------------------------------------------------
 
 // static function prototypes -------------------------------------------------
-static  void  LpuartIrqCallback( LPUARTIRQEVENTS eEvent, U8 nOption );
+static  void  LpUartIrqCallback( LPUARTIRQEVENTS eEvent, U8 nOption );
 
 // global parameter declarations ----------------------------------------------
 /// declare the buffers
@@ -45,10 +45,10 @@ static  void  LpuartIrqCallback( LPUARTIRQEVENTS eEvent, U8 nOption );
 LPUARTBUFFER( DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE ); 
 
 /// device configuration table
-const LPUARTDEF g_tLpUarttDef = 
+const LPUARTDEF g_tLpUartDef = 
 {
   // LPUART_ASYNC_DEF( baudrate, parity, wrdlen, stopbits, name, rxsize, txsize, callback, rcvchr, rcverr, txemp, txcmp, brkdet )
-  LPUARTASYNCDEF( 115200, LPUART_PARITY_NONE, LPUART_WRDLEN_8, LPUART_STOPBIT_1, DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE, UsartIrqCallback, ON, OFF, OFF, OFF, OFF )
+  LPUARTASYNCDEF( 115200, LPUART_PARITY_NONE, LPUART_WRDLEN_8, LPUART_STOPBIT_1, DbgChar, DBGASCCMDHANDLER_RCVBUF_SIZE, DBGASCCMDHANDLER_XMTBUF_SIZE, LpUartIrqCallback, ON, OFF, OFF, OFF, OFF )
 };  
 
 

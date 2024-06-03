@@ -35,6 +35,7 @@
 #include "GPIO/Gpio.h"
 #include "Interrupt/Interrupt.h"
 #include "SystemTick/SystemTick.h"
+#include "LPUART/LpUart.h"
 
 // include driver files
 
@@ -44,9 +45,11 @@
 // include protocol file
 
 // include Services files
+#include "AsciiCommandHandler/AsciiCommandHandler.h"
 #include "FaultHandler/FaultHandler.h"
 
 // include application files
+#include "DbgAscCommandHandler/DbgAscCommandHandler.h"
 #include "TestRoutine/TestRoutine.h"
 
 // Macros and Defines ---------------------------------------------------------
@@ -66,6 +69,7 @@
 
     /// add HAL initializlations here
     Gpio_Initialize,
+    LpUart_Initialize,
 
     /// add OS initializations here
     TaskManager_Initialize,
@@ -75,8 +79,10 @@
     /// add protocol initialization here
 
     /// add services initializations here
+    AsciiCommandHandler_Initialize,
 
     /// add application initializations here
+    DbgAscCommandHandler_Initialize,
     TestRoutine_Initialize,
     
     // do not remove this entry

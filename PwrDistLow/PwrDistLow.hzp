@@ -45,7 +45,7 @@
       arm_target_loader_applicable_loaders="Flash"
       arm_target_loader_default_loader="Flash"
       arm_target_trace_interface_type="None"
-      c_user_include_directories="$(TargetsDir)/STM32/include;$(ProjectDir)/Source;$(ProjectDir)/Source/Application;$(ProjectDir)/Source/HAL;$(ProjectDir)/Source/HALConfig;$(ProjectDir)/Source/Main;$(ProjectDir)/Source/MainConfig;$(ProjectDir)/Source/OS;$(ProjectDir)/Source/OSConfig;$(ProjectDir)/Source/Services;$(ProjectDir)/Source/ServicesConfig;$(ProjectDir)/Source/SystemDefine;$(ProjectDir)/Source/Types"
+      c_user_include_directories="$(TargetsDir)/STM32/include;$(ProjectDir)/Source;$(ProjectDir)/Source/Application;$(ProjectDir)/Source/HAL;$(ProjectDir)/Source/HALConfig;$(ProjectDir)/Source/Main;$(ProjectDir)/Source/MainConfig;$(ProjectDir)/Source/OS;$(ProjectDir)/Source/OSConfig;$(ProjectDir)/Source/Services;$(ProjectDir)/Source/Services/CommandHandlers;$(ProjectDir)/Source/ServicesConfig;$(ProjectDir)/Source/ServicesConfig/CommandHandlers;$(ProjectDir)/Source/SystemDefine;$(ProjectDir)/Source/Types"
       debug_register_definition_file="$(TargetsDir)/STM32/STM32G491_Peripherals.xml"
       linker_memory_map_file="$(TargetsDir)/STM32/STM32G491RE_MemoryMap.xml"
       linker_output_format="hex"
@@ -70,6 +70,14 @@
     <configuration Name="RAM" target_reset_script="Reset()" />
     <folder Name="Source">
       <folder Name="Application">
+        <folder Name="AscCommonCommands">
+          <file file_name="Source/Application/AscCommonCommands/AscCommonCommands.c" />
+          <file file_name="Source/Application/AscCommonCommands/AscCommonCommands.h" />
+        </folder>
+        <folder Name="DbgAscCommandhandler">
+          <file file_name="Source/Application/DbgAscCommandHandler/DbgAscCommandHandler.c" />
+          <file file_name="Source/Application/DbgAscCommandHandler/DbgAscCommandHandler.h" />
+        </folder>
         <folder Name="TestRoutine">
           <file file_name="Source/Application/TestRoutine/TestRoutine.c" />
           <file file_name="Source/Application/TestRoutine/TestRoutine.h" />
@@ -95,6 +103,11 @@
           <file file_name="Source/HAL/Interrupt/Interrupt.c" />
           <file file_name="Source/HAL/Interrupt/Interrupt.h" />
         </folder>
+        <folder Name="LPUART">
+          <file file_name="Source/HAL/LPUART/LpUart.c" />
+          <file file_name="Source/HAL/LPUART/LpUart.h" />
+          <file file_name="Source/HAL/LPUART/LpUart_def.h" />
+        </folder>
         <folder Name="SystemTick">
           <file file_name="Source/HAL/SystemTick/SystemTick.c" />
           <file file_name="Source/HAL/SystemTick/SystemTick.h" />
@@ -116,6 +129,10 @@
         </folder>
         <folder Name="Interrupt">
           <file file_name="Source/HALConfig/Interrupt/Interrupt_prm.h" />
+        </folder>
+        <folder Name="LPUART">
+          <file file_name="Source/HALConfig/LPUART/LpUart_cfg.c" />
+          <file file_name="Source/HALConfig/LPUART/LpUart_cfg.h" />
         </folder>
         <folder Name="SystemTick">
           <file file_name="Source/HALConfig/SystemTick/SystemTick_cfg.c" />
@@ -147,12 +164,26 @@
         </folder>
       </folder>
       <folder Name="Services">
+        <folder Name="CommandHandlers">
+          <folder Name="AsciiCommandHandler">
+            <file file_name="Source/Services/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler.c" />
+            <file file_name="Source/Services/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler.h" />
+            <file file_name="Source/Services/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler_def.h" />
+          </folder>
+        </folder>
         <folder Name="FaultHandler">
           <file file_name="Source/Services/FaultHandler/FaultHandler.c" />
           <file file_name="Source/Services/FaultHandler/FaultHandler.h" />
         </folder>
       </folder>
       <folder Name="ServicesConfig">
+        <folder Name="CommandsHandlers">
+          <folder Name="AsciiCommandHandler">
+            <file file_name="Source/ServicesConfig/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler_cfg.c" />
+            <file file_name="Source/ServicesConfig/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler_cfg.h" />
+            <file file_name="Source/ServicesConfig/CommandHandlers/AsciiCommandHandler/AsciiCommandHandler_prm.h" />
+          </folder>
+        </folder>
         <folder Name="FaultHandler">
           <file file_name="Source/ServicesConfig/FaultHandler/FaultHandler_cfg.c" />
           <file file_name="Source/ServicesConfig/FaultHandler/FaultHandler_cfg.h" />
