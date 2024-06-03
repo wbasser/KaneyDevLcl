@@ -27,6 +27,7 @@
 #include "TestRoutine/TestRoutine.h"
 
 // library includes -----------------------------------------------------------
+#include "Clock/Clock.h"
 #include "GPIO/Gpio.h"
 
 // Macros and Defines ---------------------------------------------------------
@@ -55,6 +56,9 @@
  *****************************************************************************/
 BOOL TestRoutine_Initialize( void )
 {
+  // turn on the clock output
+  Clock_SetMasterClockOutput( MCO_CLKSRC_SYSCLK, MCO_PRESCALE_1 );
+
   // return ok
   return( FALSE );
 }

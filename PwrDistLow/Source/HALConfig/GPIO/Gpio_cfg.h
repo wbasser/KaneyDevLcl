@@ -41,6 +41,9 @@ typedef enum  _GPIOPINENUM
 {
   // add enumerations here
   GPIO_PIN_ENUM_STSLED = 0, 
+  GPIO_PIN_ENUM_MCOOUT,
+  GPIO_PIN_ENUM_DBGTXD,
+  GPIO_PIN_ENUM_DBGRXD,
   
   // this ends the list - do not remove
   GPIO_PIN_ENUM_MAX,

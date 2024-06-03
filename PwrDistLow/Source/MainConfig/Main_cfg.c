@@ -62,7 +62,6 @@
   {
     /// base HAL initializations here
     Clock_Initialize,
-//    Flash_Initialize,
     SystemTick_Initialize,
 
     /// add HAL initializlations here
@@ -100,7 +99,7 @@
     #if ( SYSTEMDEFINE_OS_SELECTION == SYSTEMDEFINE_OS_TASKMANAGER )
       TaskManager_IdleProcess,
     #elif ( SYSTEMDEFINE_OS_SELECTON == SYSTEMDEFINE_OS_TASKSCHEDULER )
-	  TaskScheduler_IdleProcess,
+	    TaskScheduler_IdleProcess,
     #endif // SYSTEMDEFINE_OS_SELECTION
 
     // do not remove this entry

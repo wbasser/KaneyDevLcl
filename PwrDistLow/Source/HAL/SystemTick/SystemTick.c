@@ -35,7 +35,7 @@
 
 // local parameter declarations -----------------------------------------------
 #if ( SYSTEMDEFINE_OS_SELECTION == SYSTEMDEFINE_OS_FREERTOS )
- U32   SystemCoreClock;
+  U32   SystemCoreClock;
 #endif // SYSTEMDEFFIN_OS_SELECTON
 
 // local parameter declarations -----------------------------------------------
