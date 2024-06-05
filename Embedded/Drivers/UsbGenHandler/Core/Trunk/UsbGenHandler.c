@@ -50,7 +50,6 @@ typedef struct _ENDPNTCALLBACK
 // local parameter declarations -----------------------------------------------
 static  ENDPNTCALLBACK  atEndpoints[ USB_NUM_ENDPOINTS ];
 static  U8              nConfig;
-//static  ALIGNED4 U8     anStringBuffer[ USB_MAX_PACKET_SIZE ];
 static  VBOOL           bWriteInProgress;
 
 // local function prototypes --------------------------------------------------
@@ -216,8 +215,6 @@ void UsbGenHandler_HandleStandardRequest( PUSBREQUEST ptRequest )
 {
   U16                     wTemp;
   U8                      nEp, nDir;
-  //PUSBDESCHEADR           ptDescHeader;
-  //PUSBENDPOINTDESCRIPTOR  ptDescEndpoint;
   
   // determine the request
   switch(( ptRequest->nRequest << 8 ) | ptRequest->nRequestType )
@@ -245,29 +242,6 @@ void UsbGenHandler_HandleStandardRequest( PUSBREQUEST ptRequest )
         Usb_ConfigureEndpoint( USB_CDCENDPOINT_RCV, USB_ENDPNTTYPE_BULK, 64 );
         Usb_ConfigureEndpoint( USB_CDCENDPOINT_XMT | USB_ENDPOINT_IN, USB_ENDPNTTYPE_BULK, 64 );
         Usb_ConfigureEndpoint( USB_CDCENDPOINT_CTL | USB_ENDPOINT_IN, USB_ENDPNTTYPE_OTHER, 64 );
-//        // get the size of the config
-//        wTemp = g_tUsbConfig.tCfgDescriptor.wTotalLength;
-//
-//        // get the descriptor header
-//        ptDescHeader = ( PUSBDESCHEADR )&g_tUsbConfig;
-//        
-//        // check for done
-//        while( wTemp != 0 )
-//        {
-//          // is this and endpoint descriptor
-//          if ( ptDescHeader->nDescriptorType == USB_DESCTYPES_ENDPOINT )
-//          {
-//            // cast the pointer
-//            ptDescEndpoint = ( PUSBENDPOINTDESCRIPTOR )ptDescHeader;
-//            
-//            // configure the endpoint
-//            Usb_ConfigureEndpoint( ptDescEndpoint->nEndpointAddress, ptDescEndpoint->nAttributes, ptDescEndpoint->wMaxPacketSize );
-//          }
-//          
-//          // adjust the size/increment pointer
-//          wTemp -= ptDescHeader->nLength;
-//          ptDescHeader = ( PUSBDESCHEADR )(( PU8 )ptDescHeader + ptDescHeader->nLength );
-//        }
         
         // call the local callback
         UsbGenHandler_ProcessControlCallback( nConfig );

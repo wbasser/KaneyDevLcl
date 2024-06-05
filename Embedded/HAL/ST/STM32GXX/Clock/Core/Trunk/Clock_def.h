@@ -239,8 +239,7 @@ typedef enum _MCOPRESCALE
 /// enumerate the UART/LPUART clock source
 typedef enum _UARTCLKSRC
 {
-  UART_CLKSRC_PCLK1 = 0,          ///< PCLK1
-  UART_CLKSRC_PCLK2,              ///< PCLK2
+  UART_CLKSRC_PCLKX = 0,          ///< PCLKX (1/2)
   UART_CLKSRC_SYSCLK,             ///< SYSCLK
   UART_CLKSRC_HSI16,              ///< HSI16
   UART_CLKSRC_LSE,                ///< LSE

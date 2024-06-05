@@ -22,8 +22,8 @@
  *****************************************************************************/
  
 // ensure only one instantiation
-#ifndef _LPUART_CFG_H
-#define _LPUART_CFG_H
+#ifndef _LPUART_H
+#define _LPUART_H
 
 // system includes ------------------------------------------------------------
 

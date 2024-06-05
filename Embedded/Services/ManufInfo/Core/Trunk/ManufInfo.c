@@ -125,11 +125,23 @@ static  const CODE C8  szPartNum1[ MANUFINFO_PRTNUM1_LEN ] =
   #if (( MANUFINFO_REV_BLT_VER_ENABLE == 1 ) && ( SYSTEMDEFINE_BOOTLOADER_REV_ADDRESS != 0 ))
     static  const CODE C8 szRspBtl[ ] = { ", BTL:%d.%d" };
   #endif // SYSTEMDEFINE_BOOTLOADER_REV_ADDRESS
-  static  const CODE C8 szRspVr2[ ]   = { ", HDW:%d.%d, " };
-  #if ( MANUFINFO_REV_SFW_TST_ENABLE == ON )
-    static  const CODE C8 szRspVr3[ ]   = { "SFW:%d.%d.%d, " };
+  #if ( MANUFINFO_DSP_BASE_SELECTION == MANUFINFO_DSP_DEC_OPTION )
+    static  const CODE C8 szRspVr2[ ]   = { ", HDW:%d.%d, " };
   #else
-    static  const CODE C8 szRspVr3[ ]   = { "SFW:%d.%d" };
+    static  const CODE C8 szRspVr2[ ]   = { ", HDW:%02X.%02X, " };
+  #endif // MANUFINFO_DSP_BASE_SELECTON
+  #if ( MANUFINFO_REV_SFW_TST_ENABLE == ON )
+    #if ( MANUFINFO_DSP_BASE_SELECTION == MANUFINFO_DSP_DEC_OPTION )
+      static  const CODE C8 szRspVr3[ ]   = { "SFW:%d.%d.%d, " };
+    #else
+      static  const CODE C8 szRspVr3[ ]   = { "SFW:%02X.%02X.%02X, " };
+    #endif // MANUFINFO_DSP_BASE_SELECTON
+  #else
+    #if ( MANUFINFO_DSP_BASE_SELECTION == MANUFINFO_DSP_DEC_OPTION )
+      static  const CODE C8 szRspVr3[ ]   = { "SFW:%d.%d" };
+    #else
+      static  const CODE C8 szRspVr3[ ]   = { "SFW:%02X.%02X" };
+    #endif // MANUFINFO_DSP_BASE_SELECTON
   #endif // MANUFINFO_REV_SFW_TST_ENABLE
   static  const CODE C8 szNewLine[ ]  = { "\n\r" };
 #endif // MANUFINFO_ENABLE_DEBUGCOMMANDS

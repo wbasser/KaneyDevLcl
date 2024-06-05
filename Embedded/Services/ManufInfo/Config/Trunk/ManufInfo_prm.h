@@ -28,36 +28,43 @@
 
 // Macros and Defines ---------------------------------------------------------
 /// define the macro to enable debug commands
-#define MANUFINFO_ENABLE_DEBUGCOMMANDS          ( 0 )
+#define MANUFINFO_ENABLE_DEBUGCOMMANDS          ( ON )
 
 /// define the macro to enable software revision test
-#define MANUFINFO_REV_SFW_TST_ENABLE 		        ( 1 )
+#define MANUFINFO_REV_SFW_TST_ENABLE 		( ON )
 
-/// define the boot loader reveison enable
-#define MANUFINFO_REV_BLT_VER_ENABLE            ( 0 )
+/// define the macro to enable boot loader revision
+#define MANUFINFO_REV_BLT_VER_ENABLE            ( OFF )
+
+/// define the macro to determine decimal/hex display of versions
+#define MANUFINFO_DSP_DEC_OPTION                ( 0 )
+#define MANUFINFO_DSP_HEX_OPTION                ( 1 )
+
+// define the ver display base selection
+#define MANUFINFO_DSP_BASE_SELECTION            ( MANUFINFO_DSP_HEX_OPTION )
 
 /// define the lengths for the serial number/part numbers
-#define MANUFINFO_TITLE_LEN                     ( 16 )
+#define MANUFINFO_TITLE_LEN                     ( 32 )
 #define MANUFINFO_SERNUM_LEN                    ( 8 )
 #define MANUFINFO_PRTNUM1_LEN                   ( 14 )
 #define MANUFINFO_PRTNUM2_LEN                   ( 11 )
 
 /// define the major/minor/test version numbers
-#define MANUFINFO_HDW_MAJ                       ( 0x01 )
-#define MANUFINFO_HDW_MIN                       ( 0x00 )
+#define MANUFINFO_HDW_MAJ                       ( 0xEE )
+#define MANUFINFO_HDW_MIN                       ( 0x01 )
 
 /// define the major/minor/test version numbers
-#define MANUFINFO_SFW_MAJ                       ( 0x00 )
-#define MANUFINFO_SFW_MIN                       ( 0x00 )
-#if ( MANUFINFO_REV_SFW_TST_ENABLE == 1 )
-  #define MANUFINFO_SFW_TST                     ( 0x01 )
+#define MANUFINFO_SFW_MAJ                       ( USR_SFW_MAJ )
+#define MANUFINFO_SFW_MIN                       ( USR_SFW_MIN )
+#if ( MANUFINFO_REV_SFW_TST_ENABLE == ON )
+  #define MANUFINFO_SFW_TST                     ( USR_SFW_TST )
 #endif // MANUFINFO_REV_SFW_TST_ENABLE
 
 /// define the sernum
-#define MANUFINFO_TITLE                         ( "" )
-#define MANUFINFO_SERNUM                        ( "" )
-#define MANUFINFO_PRTNUM1                       ( "" )
-#define MANUFINFO_PRTNUM2                       ( "" )
+#define MANUFINFO_TITLE                         ( "PwrDisLow" )
+#define MANUFINFO_SERNUM                        ( "E000001" )
+#define MANUFINFO_PRTNUM1                       ( "89-999999-001" )
+#define MANUFINFO_PRTNUM2                       ( "06/04/2024" )
 
 /**@} EOF ManufInfo_prm.h */
 

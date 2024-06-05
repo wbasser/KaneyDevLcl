@@ -65,7 +65,7 @@ static  void  ConfigureApb( void );
 static  void  ConfigurePerClocks( void );
 static  void  ComputeSystemClockFreq( void );
 static  U32   GetI2cClockFreq( I2CCLKSRC eClkSel );
-static  U32   GetUsartClockFreq( UARTCLKSRC eClkSel );
+static  U32   GetUsartClockFreq( CLOCKMUXSEL eClockMuxSel, UARTCLKSRC eClkSel );
 static  U32   GetAdcClockFreq( ADCCLKSRC eClkSel );
 
 // constant parameter initializations -----------------------------------------
@@ -337,7 +337,7 @@ U32 Clock_GetPerClkMuxFrequency( CLOCKMUXSEL eClkMuxSel )
       break;
 
     case CLOCK_MUXSEL_LPUART1 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_LPUART1SEL ) >> RCC_CCIPR_LPUART1SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_LPUART1, ( RCC->CCIPR & RCC_CCIPR_LPUART1SEL ) >> RCC_CCIPR_LPUART1SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_PWR :
@@ -362,23 +362,23 @@ U32 Clock_GetPerClkMuxFrequency( CLOCKMUXSEL eClkMuxSel )
       break;
 
     case CLOCK_MUXSEL_USART1 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_USART1SEL ) >> RCC_CCIPR_USART1SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_USART1, ( RCC->CCIPR & RCC_CCIPR_USART1SEL ) >> RCC_CCIPR_USART1SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_USART2 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_USART2SEL ) >> RCC_CCIPR_USART2SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_USART2, ( RCC->CCIPR & RCC_CCIPR_USART2SEL ) >> RCC_CCIPR_USART2SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_USART3 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_USART3SEL ) >> RCC_CCIPR_USART3SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_USART3, ( RCC->CCIPR & RCC_CCIPR_USART3SEL ) >> RCC_CCIPR_USART3SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_UART4 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_UART4SEL ) >> RCC_CCIPR_UART4SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_UART4, ( RCC->CCIPR & RCC_CCIPR_UART4SEL ) >> RCC_CCIPR_UART4SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_UART5 :
-      uClkMuxFreq = GetUsartClockFreq(( RCC->CCIPR & RCC_CCIPR_UART5SEL ) >> RCC_CCIPR_UART5SEL_Pos );
+      uClkMuxFreq = GetUsartClockFreq( CLOCK_MUXSEL_UART5, ( RCC->CCIPR & RCC_CCIPR_UART5SEL ) >> RCC_CCIPR_UART5SEL_Pos );
       break;
 
     case CLOCK_MUXSEL_WDG :
@@ -711,19 +711,15 @@ static U32 GetI2cClockFreq( I2CCLKSRC eClkSel )
  *  @return     the frequency of the clock
  *
  *****************************************************************************/
-static U32 GetUsartClockFreq( UARTCLKSRC eClkSel )
+static U32 GetUsartClockFreq( CLOCKMUXSEL eClockMuxSel, UARTCLKSRC eClkSel )
 {
   U32 uClkFreq = 0;
   
   // determine the frequency
   switch( eClkSel )
   {
-    case UART_CLKSRC_PCLK1 :
-      uClkFreq = uPclk1Freq;
-      break;
-      
-    case UART_CLKSRC_PCLK2 :
-      uClkFreq = uPclk2Freq;
+    case UART_CLKSRC_PCLKX :
+      uClkFreq = ( eClockMuxSel == CLOCK_MUXSEL_USART1 ) ? uPclk2Freq : uPclk1Freq;
       break;
       
     case UART_CLKSRC_SYSCLK :

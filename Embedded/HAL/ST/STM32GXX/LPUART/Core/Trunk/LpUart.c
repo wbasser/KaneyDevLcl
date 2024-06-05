@@ -83,7 +83,6 @@ BOOL LpUart_Initialize( void )
 {
   PLPUARTDEF      ptDef;
   PLCLCTL         ptCtl;
-  U16             wBaudRate;
   U32             uTemp;
   
   // get pointer to the definition/control structures
@@ -405,22 +404,25 @@ void LPUART1_IRQHandler( void )
  *****************************************************************************/
 static U16 ComputeBaudrate( PLPUARTDEF ptDef )
 {
-  U32   uPeripheralClock, uTemp;
+  U32   uPeripheralClock;
+  U64   hSampClock, hTemp;
   U8    nPrescale = -1;
-  U16   wBaudRate = 0;
   
   // get the peripheral clock
   uPeripheralClock = Clock_GetPerClkMuxFrequency( CLOCK_MUXSEL_LPUART1 );
-   
+
+  // compute the sample clock
+  hSampClock = uPeripheralClock * 256 / ptDef->uBaudRate;
+
   // check for baud rate outside of normal range
   do
   {
     nPrescale++;
-    uTemp = uPeripheralClock / ptDef->uBaudRate / awPrescaleValues[ nPrescale ];
-  } while ( uTemp > 65535 );
+    hTemp = hSampClock / awPrescaleValues[ nPrescale ];
+  } while ( hTemp > 524288 );
  
   // set the baudrate
-  LPUART1->BRR = uTemp;
+  LPUART1->BRR = ( U16 )( hTemp );
   LPUART1->PRESC = nPrescale;  
 }
 
